@@ -20,7 +20,8 @@ module ActiveRecord
       # client.each_host do |host| # automatically discovers all peers
       #   puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
       # end
-      ConnectionAdapters::CassandraAdapter.new(client, logger, config)
+      session = client.connect(keyspace)
+      ConnectionAdapters::CassandraAdapter.new(session, logger, config)
     end
   end # class Base
 
@@ -29,7 +30,7 @@ module ActiveRecord
       def initialize(client, logger, config)
         super(client, logger)
         @config = config
-        @connection = client
+        @connection = client.
       end
 
       def supports_count_distinct?
