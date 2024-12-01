@@ -7,7 +7,7 @@ require 'active_cassandra/sqlparser.tab'
 module ActiveRecord
   class Base
     def self.cassandra_connection(config)
-      config.symbolize_keys!
+      # config.symbolize_keys!
       host = config[:host] || '127.0.0.1'
       port = config[:port] || 9160
 
