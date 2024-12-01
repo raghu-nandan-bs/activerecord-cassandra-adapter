@@ -37,12 +37,13 @@ module ActiveRecord
       def data_source_sql(table_name, type: "BASE TABLE")
         #escaped_table_name = table_name.gsub("'", "''")
         #escaped_keyspace = @current_keyspace.gsub("'", "''")
-
+        puts "table_name: #{table_name}"
+        puts "keyspace: #{@current_keyspace}"
         <<-CQL
           SELECT table_name
           FROM system_schema.tables
-          WHERE keyspace_name = '#{escaped_keyspace}'
-            AND table_name = '#{escaped_table_name}';
+          WHERE keyspace_name = '#{@current_keyspace}'
+            AND table_name = '#{table_name}';
         CQL
       end
 
