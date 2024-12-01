@@ -11,14 +11,19 @@ module ActiveRecord
       host = config[:host] || '127.0.0.1'
       port = config[:port] || 9160
 
+
+
       unless (keyspace = config[:keyspace] || config[:database])
         raise ArgumentError, "No database file specified. Missing argument: keyspace"
       end
 
-      thrift_client_options = config.dup
-      [:adapter, :host, :port, :keyspace, :database].each {|i| thrift_client_options.delete(i) }
 
-      client = Cassandra.new(keyspace, "#{host}:#{port}", thrift_client_options)
+      client = Cassandra::Cluster.new(
+        hosts:  ["#{host}:#{port}"]
+      )
+      client.each_host do |host| # automatically discovers all peers
+        puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
+      end
       ConnectionAdapters::CassandraAdapter.new(client, logger, config)
     end
   end # class Base
@@ -36,7 +41,7 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [])
         puts "exec_query: #{sql}"
-        @connection.execute(sql)
+        @connection.
       end
 
       def data_source_sql(table_name, type: "BASE TABLE")
@@ -47,8 +52,7 @@ module ActiveRecord
         <<-CQL
           SELECT table_name
           FROM system_schema.tables
-          WHERE keyspace_name = '#{@current_keyspace}'
-            AND table_name = '#{table_name}';
+            WHERE table_name = '#{table_name}';
         CQL
       end
 

@@ -9,5 +9,5 @@ Gem::Specification.new do |spec|
   spec.has_rdoc          = true
   spec.rdoc_options      << '--title' << 'activerecord-cassandra-adapter is a Cassandra adapter for ActiveRecord.'
   spec.extra_rdoc_files  = %w(README.rdoc)
-  spec.add_dependency    'cassandra'
+  spec.add_dependency    'cassandra-driver'
 end

@@ -1,0 +1,1 @@
+var search_data = {"index":{"searchIndex":["readme"],"longSearchIndex":[""],"info":[["README","","README_rdoc.html","","<p>activerecord-cassandra-adapter\n<p>Copyright © 2010 SUGAWARA Genki &lt;sgwr_dts@yahoo.co.jp&gt;\n<p>Description …\n"]]}}
