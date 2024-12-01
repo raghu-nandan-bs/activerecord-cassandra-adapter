@@ -37,7 +37,7 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [])
         puts "exec_query: #{sql}"
-        @connection.
+        @connection.execute(sql)
       end
 
       def data_source_sql(table_name, type: "BASE TABLE")
@@ -281,10 +281,8 @@ module ActiveRecord
             casopts[:finish] = limit
           end
         end
-
         return [sqlopts, casopts]
       end
-
     end # class CassandraAdapter
   end # module ConnectionAdapters
 end # module ActiveRecord
