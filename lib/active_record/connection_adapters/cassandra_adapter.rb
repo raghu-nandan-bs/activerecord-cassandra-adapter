@@ -14,7 +14,7 @@ module ActiveRecord
       unless (keyspace = config[:keyspace] || config[:database])
         raise ArgumentError, "No database file specified. Missing argument: keyspace"
       end
-      client = Cassandra.cluster
+      client = Cassandra.cluster(
         hosts:  ["#{host}:#{port}"]
       )
       # client.each_host do |host| # automatically discovers all peers
