@@ -34,6 +34,18 @@ module ActiveRecord
         false
       end
 
+      def data_source_sql(table_name, type: "BASE TABLE")
+        escaped_table_name = table_name.gsub("'", "''")
+        escaped_keyspace = @current_keyspace.gsub("'", "''")
+
+        <<-CQL
+          SELECT table_name
+          FROM system_schema.tables
+          WHERE keyspace_name = '#{escaped_keyspace}'
+            AND table_name = '#{escaped_table_name}';
+        CQL
+      end
+
       def select(sql, name = nil)
         log(sql, name)
 
@@ -71,6 +83,9 @@ module ActiveRecord
           count ? [{count => rows.length}] : rows
         end
       end
+
+
+
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         log(sql, name)
