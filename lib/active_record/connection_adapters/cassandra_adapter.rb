@@ -11,19 +11,15 @@ module ActiveRecord
       host = config[:host] || '127.0.0.1'
       port = config[:port] || 9160
 
-
-
       unless (keyspace = config[:keyspace] || config[:database])
         raise ArgumentError, "No database file specified. Missing argument: keyspace"
       end
-
-
-      client = Cassandra::Cluster.new(
+      client = Cassandra.cluster
         hosts:  ["#{host}:#{port}"]
       )
-      client.each_host do |host| # automatically discovers all peers
-        puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
-      end
+      # client.each_host do |host| # automatically discovers all peers
+      #   puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
+      # end
       ConnectionAdapters::CassandraAdapter.new(client, logger, config)
     end
   end # class Base
