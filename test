@@ -8,18 +8,17 @@ module ActiveRecord
   class Base
     def self.cassandra_connection(config)
       # config.symbolize_keys!
-      host = config[:host] || '127.0.1.1'
-      port = config[:port] || 9042
+      host = config[:host] || '127.0.0.1'
+      port = config[:port] || 9160
 
       unless (keyspace = config[:keyspace] || config[:database])
         raise ArgumentError, "No database file specified. Missing argument: keyspace"
       end
-      client = Cassandra.cluster(
-        hosts:  ["#{host}:#{port}"]
-      )
-      # client.each_host do |host| # automatically discovers all peers
-      #   puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
-      # end
+
+      thrift_client_options = config.dup
+      [:adapter, :host, :port, :keyspace, :database].each {|i| thrift_client_options.delete(i) }
+
+      client = Cassandra.new(keyspace, "#{host}:#{port}", thrift_client_options)
       ConnectionAdapters::CassandraAdapter.new(client, logger, config)
     end
   end # class Base
@@ -35,20 +34,15 @@ module ActiveRecord
         false
       end
 
-      def exec_query(sql, name = nil, binds = [])
-        puts "exec_query: #{sql}"
-        @connection.
-      end
-
       def data_source_sql(table_name, type: "BASE TABLE")
-        #escaped_table_name = table_name.gsub("'", "''")
-        #escaped_keyspace = @current_keyspace.gsub("'", "''")
-        puts "table_name: #{table_name}"
-        puts "keyspace: #{@current_keyspace}"
+        escaped_table_name = table_name.gsub("'", "''")
+        escaped_keyspace = @current_keyspace.gsub("'", "''")
+
         <<-CQL
           SELECT table_name
           FROM system_schema.tables
-            WHERE table_name = '#{table_name}';
+          WHERE keyspace_name = '#{escaped_keyspace}'
+            AND table_name = '#{escaped_table_name}';
         CQL
       end
 
