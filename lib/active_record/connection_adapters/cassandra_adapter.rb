@@ -43,6 +43,11 @@ module ActiveRecord
         @connection.execute(sql)
       end
 
+      def execute(sql, name = nil)
+        puts "execute: #{sql}"
+        @connection.execute(sql)
+      end
+
       def data_source_sql(table_name, type: "BASE TABLE")
         #escaped_table_name = table_name.gsub("'", "''")
         #escaped_keyspace = @current_keyspace.gsub("'", "''")
