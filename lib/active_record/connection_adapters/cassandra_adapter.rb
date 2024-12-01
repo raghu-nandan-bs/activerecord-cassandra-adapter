@@ -35,8 +35,8 @@ module ActiveRecord
       end
 
       def data_source_sql(table_name, type: "BASE TABLE")
-        escaped_table_name = table_name.gsub("'", "''")
-        escaped_keyspace = @current_keyspace.gsub("'", "''")
+        #escaped_table_name = table_name.gsub("'", "''")
+        #escaped_keyspace = @current_keyspace.gsub("'", "''")
 
         <<-CQL
           SELECT table_name
