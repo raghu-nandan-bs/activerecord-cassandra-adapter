@@ -29,6 +29,7 @@ module ActiveRecord
       def initialize(client, logger, config)
         super(client, logger)
         @config = config
+        @connection = client
       end
 
       def supports_count_distinct?
