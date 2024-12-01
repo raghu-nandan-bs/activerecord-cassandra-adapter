@@ -15,7 +15,7 @@ module ActiveRecord
         raise ArgumentError, "No database file specified. Missing argument: keyspace"
       end
       client = Cassandra.cluster(
-        hosts:  ["#{host}:#{port}"]
+        hosts:  ["#{host}"]
       )
       # client.each_host do |host| # automatically discovers all peers
       #   puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
