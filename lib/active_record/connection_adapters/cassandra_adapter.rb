@@ -38,6 +38,7 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [])
         puts "exec_query: #{sql}"
+        puts " I am connection and I have following methods: #{@connection.methods}"
         @connection.execute(sql)
       end
 
