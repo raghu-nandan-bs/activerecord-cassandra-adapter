@@ -41,7 +41,7 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-puts "sql to execute: #{sql}"
+        puts "sql to execute: #{sql}"
         parsed_sql = SqlToCqlParser.to_cql(sql)
 
         puts "parsed_sql: #{parsed_sql}"
@@ -72,14 +72,14 @@ puts "sql to execute: #{sql}"
         #escaped_table_name = table_name.gsub("'", "''")
         #escaped_keyspace = @current_keyspace.gsub("'", "''")
         qry = ""
-        if type == "BASE TABLE"
+        table_name = '%' if table_name.nil?
+        if type == "BASE TABLE" || !table_name.nil?
           qry = <<-CQL
             SELECT table_name
             FROM system_schema.tables
-              WHERE table_name = '#{table_name}';
+            WHERE table_name = '#{table_name}';
           CQL
-        end
-        if type == "SCHEMA" || type == "VIEW"
+        else
           qry = <<-CQL
             SELECT table_name
             FROM system_schema.tables;
