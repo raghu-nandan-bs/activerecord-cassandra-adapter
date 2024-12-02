@@ -535,7 +535,7 @@ module ActiveRecord
         table = table_name.to_s
 
         cql = <<-CQL
-          SELECT column_name, type, kind, default_kind, default_expression
+          SELECT column_name, type, kind
           FROM system_schema.columns
           WHERE keyspace_name = '#{escape_cql(keyspace)}'
             AND table_name = '#{escape_cql(table)}';
