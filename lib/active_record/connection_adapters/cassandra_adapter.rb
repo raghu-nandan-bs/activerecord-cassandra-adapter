@@ -625,7 +625,7 @@ module ActiveRecord
 
         # Combine partition and clustering keys
         (partition_keys + clustering_keys).map { |row| row['column_name'] }
-      rescue Cassandra::Errors::InvalidQuery => e
+      rescue Cassandra::Errors::InvalidError => e
         raise ActiveRecord::StatementInvalid.new(e.message)
       end
 
