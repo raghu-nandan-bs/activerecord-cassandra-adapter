@@ -564,10 +564,10 @@ module ActiveRecord
         default = nil
         is_null = determine_null_constraint(table_name, field)
 
-        name.deduplicate = true
-        default.deduplicate = true
-        type.deduplicate = true
-        is_null.deduplicate = true
+        name.send(:deduplicate=, true)
+        default.send(:deduplicate=, true)
+        type.send(:deduplicate=, true)
+        is_null.send(:deduplicate=, true)
 
 
         Column.new(name, default, type, is_null)
