@@ -29,6 +29,7 @@ module SqlToCqlParser
 
     def tokenize
       while current_char
+        puts "current_char: #{current_char}"
         if whitespace?(current_char)
           advance
         elsif comment_start?
@@ -48,6 +49,7 @@ module SqlToCqlParser
             @tokens << Token.new(:identifier, word)
           end
         end
+        puts "tokens so far: #{@tokens.inspect}"
       end
       @tokens
     end
