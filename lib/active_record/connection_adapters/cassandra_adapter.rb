@@ -46,7 +46,11 @@ module ActiveRecord
         puts "sql to execute: #{sql}"
         puts "parsed_sql: #{parsed_sql}"
 
-        @connection.execute(parsed_sql)
+        rows = @connection.execute(parsed_sql)
+        puts "rows: #{rows.inspect}"
+        puts "rows.methods: #{rows.methods}"
+
+        rows
       end
 
       def current_keyspace
@@ -92,6 +96,7 @@ module ActiveRecord
           rows = @connection.get_range(cf, casopts).select {|i| i.columns.length > 0 }.map do |key_slice|
             key_slice_to_hash(key_slice)
           end
+          rows = [{}] if rows.empty?
 
           unless cond.empty?
             rows = filter(cond).call(rows)
