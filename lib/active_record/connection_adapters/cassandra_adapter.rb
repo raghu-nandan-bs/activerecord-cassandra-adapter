@@ -541,21 +541,19 @@ module ActiveRecord
             AND table_name = '#{escape_cql(table)}';
         CQL
 
-        result = @connection.execute(cql)
+        result = @cassandra_connection.execute(cql)
 
         # Process the result into an array of field hashes
         fields = result.map do |row|
           {
             name: row['column_name'],
             type: row['type'],
-            kind: row['kind'],
-            default_kind: row['default_kind'],
-            default_expression: row['default_expression']
+            kind: row['kind']
           }
         end
 
         fields
-      rescue Cassandra::Errors::InvalidError => e
+      rescue Cassandra::Errors::InvalidQuery => e
         raise ActiveRecord::StatementInvalid.new(e.message)
       end
 
@@ -563,14 +561,65 @@ module ActiveRecord
       def new_column_from_field(table_name, field)
         name = field[:name]
         type = map_type(field[:type])
-        default = extract_default(field)
-        null = !not_null?(field)
+        default = nil
+        determine_null_constraint(table_name, field)
 
         Column.new(name, default, type, null, table_name, default)
       end
 
       def escape_cql(identifier)
         identifier.gsub("'", "''")
+      end
+
+      def extract_default(field)
+        return nil if field[:kind] == 'none'
+
+        case field[:type].downcase
+        when 'text', 'varchar', 'uuid', 'blob'
+          field[:default_expression].gsub("'", "")
+        when 'int', 'bigint', 'float', 'decimal'
+          field[:default_expression].to_i
+        when 'boolean'
+          field[:default_expression] == 'true'
+        when 'timestamp', 'datetime', 'date', 'time'
+          begin
+            Time.parse(field[:default_expression])
+          rescue ArgumentError
+            nil
+          end
+        else
+          field[:default_expression]
+        end
+      end
+
+      # Determine if the column has a NOT NULL constraint
+      def determine_null_constraint(table_name, field)
+        # Since ScyllaDB doesn't provide null constraints in system_schema.columns,
+        # we need to infer it based on how the migration was defined.
+        # One approach is to track non-null constraints during migration parsing
+        # and store them in a separate data structure.
+        # For simplicity, assume all columns are nullable unless they are part of the primary key.
+
+        primary_keys = primary_keys(table_name)
+        !primary_keys.include?(field[:name])
+      end
+
+      def primary_keys(table_name)
+        # Query system_schema.tables to get primary key information
+        cql = <<-CQL
+          SELECT primary_key
+          FROM system_schema.tables
+          WHERE keyspace_name = '#{escape_cql(current_keyspace)}'
+            AND table_name = '#{escape_cql(table_name.to_s)}';
+        CQL
+
+        result = @cassandra_connection.execute(cql)
+        return [] if result.empty?
+
+        primary_key = result.first['primary_key']
+        primary_key || []
+      rescue Cassandra::Errors::InvalidQuery => e
+        raise ActiveRecord::StatementInvalid.new(e.message)
       end
 
     end # class CassandraAdapter
