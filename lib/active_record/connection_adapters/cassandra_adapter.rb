@@ -337,8 +337,10 @@ module ActiveRecord
           column(name, :string, options)
         end
 
-        def timestamps(name, options = {})
-          column(name, :timestamp, options)
+        # supposed to create `created_at` and `updated_at` columns
+        def timestamps(options = {})
+          column('created_at', :timestamp, options)
+          column('updated_at', :timestamp, options)
         end
 
         def text(name, options = {})
