@@ -71,11 +71,22 @@ module ActiveRecord
       def data_source_sql(table_name, type: "BASE TABLE")
         #escaped_table_name = table_name.gsub("'", "''")
         #escaped_keyspace = @current_keyspace.gsub("'", "''")
-        <<-CQL
-          SELECT table_name
-          FROM system_schema.tables
-            WHERE table_name = '#{table_name}';
-        CQL
+        qry = ""
+        if type == "BASE TABLE"
+          qry = <<-CQL
+            SELECT table_name
+            FROM system_schema.tables
+              WHERE table_name = '#{table_name}';
+          CQL
+        end
+        if type == "SCHEMA" || type == "VIEW"
+          qry = <<-CQL
+            SELECT table_name
+            FROM system_schema.tables;
+          CQL
+        end
+
+        qry
       end
 
       def to_cql(ast)
