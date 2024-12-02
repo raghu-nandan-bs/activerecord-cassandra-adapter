@@ -564,10 +564,10 @@ module ActiveRecord
         default = nil
         is_null = determine_null_constraint(table_name, field)
 
-        name = name.dup.freeze
-        default = default.dup.freeze if default
-        type = type.dup.freeze
-        is_null = is_null.dup.freeze
+        name.instance_variable_set(:@duplicate, true)
+        default.instance_variable_set(:@duplicate, true) if default
+        type.instance_variable_set(:@duplicate, true)
+        is_null.instance_variable_set(:@duplicate, true)
 
 
         Column.new(name, default, type, is_null)
