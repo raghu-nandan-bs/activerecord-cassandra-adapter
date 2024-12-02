@@ -555,7 +555,7 @@ module ActiveRecord
         end
 
         fields
-      rescue Cassandra::Errors::InvalidQuery => e
+      rescue Cassandra::Errors::InvalidError => e
         raise ActiveRecord::StatementInvalid.new(e.message)
       end
 
