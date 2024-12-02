@@ -120,17 +120,17 @@ module SqlToCqlParser
 
     def parse_word
       start_pos = @position
-      while current_char && (current_char =~ /[A-Za-z0-9_]/)
+      while current_char && (current_char =~ /[A-Za-z0-9_\.]/)
         advance
       end
       word = @input[start_pos...@position]
 
-      if current_char == '.' && peek_char && peek_char =~ /[A-Za-z_]/
-        @tokens << Token.new(:identifier, word)
-        advance  # Skip the dot
-        @tokens << Token.new(:symbol, '.')
-        word = parse_word  # Parse the table name after the dot
-      end
+      # if current_char == '.' && peek_char && peek_char =~ /[A-Za-z_]/
+      #   @tokens << Token.new(:identifier, word)
+      #   advance  # Skip the dot
+      #   @tokens << Token.new(:symbol, '.')
+      #   word = parse_word  # Parse the table name after the dot
+      # end
 
       word
     end
