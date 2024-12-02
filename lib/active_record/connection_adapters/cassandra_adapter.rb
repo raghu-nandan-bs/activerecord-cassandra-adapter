@@ -564,8 +564,7 @@ module ActiveRecord
         default = nil
         is_null = determine_null_constraint(table_name, field)
 
-        type.deduplicate = true
-
+        type.instance_variable_set(:@duplicate, true)
 
         Column.new(name, default, type, is_null)
       end
