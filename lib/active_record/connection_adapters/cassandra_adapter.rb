@@ -541,7 +541,7 @@ module ActiveRecord
             AND table_name = '#{escape_cql(table)}';
         CQL
 
-        result = @cassandra_connection.execute(cql)
+        result = @connection.execute(cql)
 
         # Process the result into an array of field hashes
         fields = result.map do |row|
@@ -613,7 +613,7 @@ module ActiveRecord
             AND table_name = '#{escape_cql(table_name.to_s)}';
         CQL
 
-        result = @cassandra_connection.execute(cql)
+        result = @connection.execute(cql)
         return [] if result.empty?
 
         primary_key = result.first['primary_key']
