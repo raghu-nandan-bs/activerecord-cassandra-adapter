@@ -322,7 +322,7 @@ module SqlToCqlParser
       limit = statement[:limit]
       order_by = statement[:order_by]
 
-      cql = "SELECT #{columns.join(', ')} FROM #{quote_ident(table_name)}"
+      cql = "SELECT #{columns.join(', ')} FROM #{table_name}"
       cql += " WHERE #{where_clause.map { |cond| "#{cond[:left]} = #{cond[:right]}" }.join(' AND ')}" if where_clause
       cql += " LIMIT #{limit}" if limit
       cql += ";"
