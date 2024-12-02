@@ -6,7 +6,9 @@ module SqlToCqlParser
       @position = 0
     end
 
-    def parse
+    parsed_sql = parser.parse
+    puts "parsed_sql: #{parsed_sql}"
+    parsed_sql
       statement = parse_statement
       translate_to_cql(statement)
     end
@@ -250,6 +252,8 @@ module SqlToCqlParser
       end
 
       expect(:symbol, ';') if current_token && current_token.value == ';'
+
+      puts "result: #{columns}, #{table_name}, #{where_clause}, #{limit}, #{order_by}"
 
       {
         type: 'SELECT',
