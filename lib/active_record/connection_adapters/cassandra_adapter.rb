@@ -40,7 +40,7 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-        puts "parsed_sql: #{parsed_sql}"
+        puts "sql to execute: #{sql}"
         @connection.execute(sql)
       end
 
