@@ -38,7 +38,7 @@ module ActiveRecord
         false
       end
 
-      def exec_query(sql, name = nil, binds = [])
+      def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         # puts "parsed_sql: #{parsed_sql}"
         @connection.execute(sql)
