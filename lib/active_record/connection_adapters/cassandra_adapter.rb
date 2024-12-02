@@ -47,7 +47,7 @@ module ActiveRecord
         puts "parsed_sql: #{parsed_sql}"
         if binds.any?
           parsed_sql = parsed_sql.gsub('?', '%s')
-          rows = @connection.execute(parsed_sql, binds)
+          rows = @connection.execute(parsed_sql, arguments: binds)
         else
           rows = @connection.execute(parsed_sql)
         end
