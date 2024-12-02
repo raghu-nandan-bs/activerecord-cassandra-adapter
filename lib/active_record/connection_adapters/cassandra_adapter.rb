@@ -47,6 +47,7 @@ module ActiveRecord
       # end
 
       def exec_query(arel, name = 'SQL', binds = [], prepare: false)
+        puts "exec_query: #{arel.inspect}"
         # Use Arel to generate CQL
         cql = to_cql(arel.ast)
         puts "cql: #{cql}"
