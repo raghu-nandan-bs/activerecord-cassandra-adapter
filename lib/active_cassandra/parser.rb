@@ -154,14 +154,19 @@ module SqlToCqlParser
     end
 
     def parse_select_columns
+
       if current_token.type == :symbol && current_token.value == '*'
         expect(:symbol, '*')
         return ['*']
       else
         columns = []
+
         while current_token && !(current_token.type == :keyword && %w(FROM WHERE LIMIT ORDER).include?(current_token.value.upcase)) && !(current_token.type == :symbol && current_token.value == ';')
           if current_token.type == :identifier
-            columns << expect(:identifier).value
+            column_name = expect(:identifier).value
+            # Remove tablename. part if present
+            column_name = column_name.split('.').last
+            columns << column_name
           else
             raise "Unexpected token in SELECT columns: #{current_token.type} #{current_token.value}"
           end
