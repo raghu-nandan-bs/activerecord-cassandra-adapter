@@ -41,8 +41,6 @@ module ActiveRecord
       def exec_query(sql, name = nil, binds = [])
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         # puts "parsed_sql: #{parsed_sql}"
-        puts "exec_query: #{sql}"
-        puts " I am connection and I have following methods: #{@connection.methods}"
         @connection.execute(sql)
       end
 
@@ -71,8 +69,6 @@ module ActiveRecord
       def data_source_sql(table_name, type: "BASE TABLE")
         #escaped_table_name = table_name.gsub("'", "''")
         #escaped_keyspace = @current_keyspace.gsub("'", "''")
-        puts "table_name: #{table_name}"
-        puts "keyspace: #{@current_keyspace}"
         <<-CQL
           SELECT table_name
           FROM system_schema.tables
@@ -426,8 +422,6 @@ module ActiveRecord
 
       public
       def create_table(table_name, options = {})
-        puts "create_table: #{table_name}"
-        puts "options: #{options}"
         options[:force] = true if options[:force].nil?
 
         # Handle table options
@@ -459,7 +453,6 @@ module ActiveRecord
         cql = "CREATE TABLE #{quote_table_name(table_name)} (\n  #{columns_cql.join(",\n  ")}\n) #{table_options};"
 
         # Execute the CQL statement
-        puts "create table cql: #{cql}"
         @connection.execute(cql)
       end
 
@@ -564,8 +557,7 @@ module ActiveRecord
         default = nil
         is_null = determine_null_constraint(table_name, field)
 
-        type.instance_variable_set(:@duplicate, true)
-
+        puts "type: #{type.inspect}"
         Column.new(name, default, type, is_null)
       end
 
