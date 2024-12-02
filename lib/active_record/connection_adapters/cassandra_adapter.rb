@@ -54,8 +54,12 @@ module ActiveRecord
       end
 
       def convert_to_active_record_result(cassandra_result)
-        columns = cassandra_result.first.keys
-        rows = cassandra_result.map(&:values)
+        columns = []
+        rows = []
+        cassandra_result.map do |row|
+          columns << row.keys.first
+          rows << row.values.first
+        end
         ActiveRecord::Result.new(columns, rows)
       end
 
