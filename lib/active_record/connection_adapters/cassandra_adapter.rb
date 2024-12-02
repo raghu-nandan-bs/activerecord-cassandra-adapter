@@ -40,26 +40,9 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-        # puts "parsed_sql: #{parsed_sql}"
+        puts "parsed_sql: #{parsed_sql}"
         @connection.execute(sql)
       end
-
-      # def exec_query(arel, name = 'SQL', binds = [], prepare: false)
-      #   puts "exec_query: #{arel.inspect}"
-      #   # Use Arel to generate CQL
-      #   cql = to_cql(arel.ast)
-      #   puts "cql: #{cql}"
-#
-      #   # Log the CQL if logging is enabled
-      #   log(sql: cql, name: name)
-      #   result = @connection.execute(cql)
-      #   puts "result: #{result}"
-      #   # Convert the result to ActiveRecord::Result
-      #   ActiveRecord::Result.new(result.column_names, result.rows)
-#
-      # rescue Cassandra::Error => e
-      #   raise ActiveRecord::StatementInvalid.new(e.message)
-      # end
 
       def current_keyspace
           # You should have stored the current keyspace during connection
@@ -556,9 +539,6 @@ module ActiveRecord
         type = map_type(field[:type])
         default = nil
         is_null = determine_null_constraint(table_name, field)
-
-        puts "type: #{type.inspect}"
-        puts "type methods: #{type.methods.sort.join(', ')}"
 
         type.define_singleton_method(:deduplicate) { self }
         type.define_singleton_method(:sql_type) { self }
