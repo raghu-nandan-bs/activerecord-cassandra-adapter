@@ -61,7 +61,7 @@ module ActiveCassandra
         end
 
         def identifier(value)
-          unless value.kind_of?(Proc) and value.arity <= 0 
+          unless value.kind_of?(Proc) and value.arity <= 0
             raise ArgumentError, "Incorrect identifier: \#{value}"
           end
 

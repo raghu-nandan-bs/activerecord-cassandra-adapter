@@ -4,6 +4,7 @@ require 'cassandra'
 require 'active_cassandra/cf'
 require 'active_cassandra/sqlparser.tab'
 require 'active_cassandra/cassandra_arel_visitor'
+require 'active_cassandra/sql_to_cql_parser'
 
 module ActiveRecord
   class Base
@@ -40,7 +41,11 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
+        parsed_sql = SqlToCqlParser.to_cql(sql)
+
         puts "sql to execute: #{sql}"
+        puts "parsed_sql: #{parsed_sql}"
+
         @connection.execute(sql)
       end
 
