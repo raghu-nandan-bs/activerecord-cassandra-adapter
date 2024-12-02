@@ -63,7 +63,10 @@ module ActiveRecord
       #   raise ActiveRecord::StatementInvalid.new(e.message)
       # end
 
-
+      def current_keyspace
+          # You should have stored the current keyspace during connection
+          @connection.keyspace
+      end
 
       def data_source_sql(table_name, type: "BASE TABLE")
         #escaped_table_name = table_name.gsub("'", "''")
@@ -525,6 +528,49 @@ module ActiveRecord
         else
           'text' # Default to text for unknown types
         end
+      end
+
+      def column_definitions(table_name)
+        keyspace = current_keyspace
+        table = table_name.to_s
+
+        cql = <<-CQL
+          SELECT column_name, type, kind, default_kind, default_expression
+          FROM system_schema.columns
+          WHERE keyspace_name = '#{escape_cql(keyspace)}'
+            AND table_name = '#{escape_cql(table)}';
+        CQL
+
+        result = @cassandra_connection.execute(cql)
+
+        # Process the result into an array of field hashes
+        fields = result.map do |row|
+          {
+            name: row['column_name'],
+            type: row['type'],
+            kind: row['kind'],
+            default_kind: row['default_kind'],
+            default_expression: row['default_expression']
+          }
+        end
+
+        fields
+      rescue Cassandra::Errors::InvalidQuery => e
+        raise ActiveRecord::StatementInvalid.new(e.message)
+      end
+
+      # Override to create a new column from field metadata
+      def new_column_from_field(table_name, field)
+        name = field[:name]
+        type = map_type(field[:type])
+        default = extract_default(field)
+        null = !not_null?(field)
+
+        Column.new(name, default, type, null, table_name, default)
+      end
+
+      def escape_cql(identifier)
+        identifier.gsub("'", "''")
       end
 
     end # class CassandraAdapter
