@@ -3,6 +3,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'cassandra'
 require 'active_cassandra/cf'
 require 'active_cassandra/sqlparser.tab'
+require 'active_cassandra/cassandra_arel_visitor'
 
 module ActiveRecord
   class Base
@@ -37,20 +38,31 @@ module ActiveRecord
         false
       end
 
-      def exec_query(sql, name = nil, binds = [])
-        parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-        puts "parsed_sql: #{parsed_sql}"
-        puts "exec_query: #{sql}"
-        puts " I am connection and I have following methods: #{@connection.methods}"
-        @connection.execute(sql)
+      # def exec_query(sql, name = nil, binds = [])
+      #   parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
+      #   puts "parsed_sql: #{parsed_sql}"
+      #   puts "exec_query: #{sql}"
+      #   puts " I am connection and I have following methods: #{@connection.methods}"
+      #   @connection.execute(sql)
+      # end
+
+      def exec_query(arel, name = 'SQL', binds = [], prepare: false)
+        # Use Arel to generate CQL
+        cql = to_cql(arel.ast)
+        puts "cql: #{cql}"
+
+        # Log the CQL if logging is enabled
+        log(sql: cql, name: name)
+        result = @connection.execute(cql)
+        puts "result: #{result}"
+        # Convert the result to ActiveRecord::Result
+        ActiveRecord::Result.new(result.column_names, result.rows)
+
+      rescue Cassandra::Error => e
+        raise ActiveRecord::StatementInvalid.new(e.message)
       end
 
-      def execute(sql, name = nil)
-        parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-        puts "parsed_sql: #{parsed_sql}"
-        puts "execute: #{sql}"
-        @connection.execute(sql)
-      end
+
 
       def data_source_sql(table_name, type: "BASE TABLE")
         #escaped_table_name = table_name.gsub("'", "''")
@@ -63,6 +75,13 @@ module ActiveRecord
             WHERE table_name = '#{table_name}';
         CQL
       end
+
+      def to_cql(ast)
+        visitor = CassandraArelVisitor.new(self)
+        visitor.accept(ast).to_sql
+      end
+
+
 
       def select(sql, name = nil)
         log(sql, name)
@@ -295,6 +314,208 @@ module ActiveRecord
         end
         return [sqlopts, casopts]
       end
+
+      class TableDefinition
+        attr_reader :columns
+
+        def initialize(adapter, table_name, options = {})
+          @adapter = adapter
+          @table_name = table_name
+          @primary_key = options[:primary_key]
+          @id = options[:id]
+          @columns = []
+        end
+
+        # Define a column
+        def column(name, type, options = {})
+          @columns << ColumnDefinition.new(name, type, options)
+        end
+
+        # Define shorthand methods for common types
+        def string(name, options = {})
+          column(name, :string, options)
+        end
+
+        def text(name, options = {})
+          column(name, :text, options)
+        end
+
+        def integer(name, options = {})
+          column(name, :integer, options)
+        end
+
+        def bigint(name, options = {})
+          column(name, :bigint, options)
+        end
+
+        def float(name, options = {})
+          column(name, :float, options)
+        end
+
+        def decimal(name, options = {})
+          column(name, :decimal, options)
+        end
+
+        def boolean(name, options = {})
+          column(name, :boolean, options)
+        end
+
+        def datetime(name, options = {})
+          column(name, :datetime, options)
+        end
+
+        def timestamp(name, options = {})
+          column(name, :timestamp, options)
+        end
+
+        def date(name, options = {})
+          column(name, :date, options)
+        end
+
+        def time(name, options = {})
+          column(name, :time, options)
+        end
+
+        def uuid(name, options = {})
+          column(name, :uuid, options)
+        end
+
+        def binary(name, options = {})
+          column(name, :binary, options)
+        end
+
+        def json(name, options = {})
+          column(name, :json, options)
+        end
+
+        def jsonb(name, options = {})
+          column(name, :jsonb, options)
+        end
+
+        # Handle indexes or other table-level options if needed
+      end
+
+      # ColumnDefinition class to represent a single column
+      class ColumnDefinition
+        attr_reader :name, :type, :options
+
+        def initialize(name, type, options = {})
+          @name = name
+          @type = type
+          @options = options
+        end
+
+        def null
+          options.fetch(:null, true)
+        end
+
+        def default
+          options[:default]
+        end
+      end # class ColumnDefinition
+
+      def create_table(table_name, options = {})
+        options[:force] = true if options[:force].nil?
+
+        # Handle table options
+        table_options = options[:options] || ''
+
+        # Initialize column definitions array
+        columns_cql = []
+
+        # Handle primary key options
+        primary_key = options[:primary_key] || 'id'
+        primary_key_type = options[:id] || :uuid
+
+        # Add primary key column
+        columns_cql << "#{quote_column_name(primary_key)} #{map_type(primary_key_type)} PRIMARY KEY"
+
+        # Extract columns from the block
+        if block_given?
+          # Capture the table definition
+          table_definition = TableDefinition.new(self, table_name, primary_key: primary_key, id: false)
+          yield table_definition
+
+          # Iterate over defined columns
+          table_definition.columns.each do |column|
+            columns_cql << column_to_cql(column)
+          end
+        end
+
+        # Construct the CQL statement
+        cql = "CREATE TABLE #{quote_table_name(table_name)} (\n  #{columns_cql.join(",\n  ")}\n) #{table_options};"
+
+        # Execute the CQL statement
+        @cassandra_connection.execute(cql)
+      end
+
+      private
+
+      # Convert a column definition to CQL
+      def column_to_cql(column)
+        "#{quote_column_name(column.name)} #{map_type(column.type)}#{null_constraint(column)}#{default_value(column)}"
+      end
+
+      # Handle NULL constraints (Cassandra treats columns as nullable by default)
+      def null_constraint(column)
+        column.null ? '' : ' NOT NULL'
+      end
+
+      # Handle default values
+      def default_value(column)
+        return '' unless column.default
+
+        " DEFAULT #{format_default(column.default, column.type)}"
+      end
+
+      # Format default values based on type
+      def format_default(value, type)
+        case type
+        when :string, :text, :uuid
+          "'#{value}'"
+        when :integer, :bigint, :float, :decimal
+          value.to_s
+        when :boolean
+          value ? 'true' : 'false'
+        when :datetime, :timestamp
+          # Cassandra requires timestamps in specific formats
+          # You might need to handle this appropriately
+          "'#{value}'"
+        else
+          "'#{value}'" # Fallback to string
+        end
+      end
+
+      # Example type mapping (extend as needed)
+      def map_type(type)
+        case type.to_sym
+        when :string, :text
+          'text'
+        when :integer
+          'int'
+        when :bigint
+          'bigint'
+        when :float
+          'float'
+        when :decimal
+          'decimal'
+        when :boolean
+          'boolean'
+        when :datetime, :timestamp
+          'timestamp'
+        when :date
+          'date'
+        when :time
+          'time'
+        when :uuid
+          'uuid'
+        when :binary
+          'blob'
+        else
+          'text' # Default to text for unknown types
+        end
+      end
+
     end # class CassandraAdapter
   end # module ConnectionAdapters
 end # module ActiveRecord
