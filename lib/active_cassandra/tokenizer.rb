@@ -19,7 +19,7 @@ module SqlToCqlParser
       IF EXISTS
     ].freeze
 
-    SYMBOLS = %w[( ) , ; =].freeze
+    SYMBOLS = %w[( ) , ; = .].freeze
 
     def initialize(input)
       @input = input.strip
@@ -123,7 +123,16 @@ module SqlToCqlParser
       while current_char && (current_char =~ /[A-Za-z0-9_]/)
         advance
       end
-      @input[start_pos...@position]
+      word = @input[start_pos...@position]
+
+      if current_char == '.' && peek_char && peek_char =~ /[A-Za-z_]/
+        @tokens << Token.new(:identifier, word)
+        advance  # Skip the dot
+        @tokens << Token.new(:symbol, '.')
+        word = parse_word  # Parse the table name after the dot
+      end
+
+      word
     end
   end
 end
