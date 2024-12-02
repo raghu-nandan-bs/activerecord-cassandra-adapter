@@ -614,7 +614,8 @@ module ActiveRecord
           WHERE keyspace_name = '#{escape_cql(keyspace)}'
             AND table_name = '#{escape_cql(table)}'
             AND kind IN ('partition_key', 'clustering_key')
-          ORDER BY kind, position;
+          ORDER BY kind, position
+          ALLOW FILTERING;
         CQL
 
         result = @connection.execute(cql)
