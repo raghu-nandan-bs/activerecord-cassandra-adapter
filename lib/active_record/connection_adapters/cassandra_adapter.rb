@@ -46,7 +46,7 @@ module ActiveRecord
         puts "sql to execute: #{sql}"
         puts "parsed_sql: #{parsed_sql}"
 
-        @connection.execute(sql)
+        @connection.execute(parsed_sql)
       end
 
       def current_keyspace
