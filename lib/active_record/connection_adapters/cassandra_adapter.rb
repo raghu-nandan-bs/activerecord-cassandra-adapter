@@ -45,8 +45,12 @@ module ActiveRecord
         parsed_sql = SqlToCqlParser.to_cql(sql)
 
         puts "parsed_sql: #{parsed_sql}"
-
-        rows = @connection.execute(parsed_sql)
+        if binds.any?
+          parsed_sql = parsed_sql.gsub('?', '%s')
+          rows = @connection.execute(parsed_sql, binds)
+        else
+          rows = @connection.execute(parsed_sql)
+        end
         puts "rows: #{rows.inspect}"
         puts "rows.methods: #{rows.methods}"
 

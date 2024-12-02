@@ -338,6 +338,8 @@ module SqlToCqlParser
         translate_drop_table(statement)
       when 'SELECT'
         translate_select(statement)
+      when 'INSERT'
+        translate_insert(statement)
       else
         raise "Unsupported statement type: #{statement[:type]}"
       end
@@ -378,6 +380,15 @@ module SqlToCqlParser
       cql += " WHERE #{where_clause.map { |cond| "#{cond[:left]} = #{cond[:right]}" }.join(' AND ')}" if where_clause
       cql += " LIMIT #{limit}" if limit
       cql += ";"
+      cql
+    end
+
+    def translate_insert(statement)
+      puts "translate_insert: #{statement.inspect}"
+      table_name = statement[:table_name]
+      columns = statement[:columns]
+      values = statement[:values]
+      cql = "INSERT INTO #{table_name} (#{columns.join(', ')}) VALUES (#{values.join(', ')})"
       cql
     end
 
