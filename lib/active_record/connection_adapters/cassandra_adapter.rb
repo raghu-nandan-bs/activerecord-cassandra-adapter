@@ -68,7 +68,7 @@ module ActiveRecord
           @connection.keyspace
       end
 
-      def data_source_sql(table_name, type: "BASE TABLE")
+      def data_source_sql(table_name=nil, type: "BASE TABLE")
         #escaped_table_name = table_name.gsub("'", "''")
         #escaped_keyspace = @current_keyspace.gsub("'", "''")
         qry = ""
