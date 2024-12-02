@@ -450,7 +450,8 @@ module ActiveRecord
         cql = "CREATE TABLE #{quote_table_name(table_name)} (\n  #{columns_cql.join(",\n  ")}\n) #{table_options};"
 
         # Execute the CQL statement
-        @cassandra_connection.execute(cql)
+        puts "create table cql: #{cql}"
+        @connection.execute(cql)
       end
 
       private
