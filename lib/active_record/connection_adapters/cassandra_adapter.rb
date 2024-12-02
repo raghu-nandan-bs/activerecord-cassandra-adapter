@@ -464,7 +464,7 @@ module ActiveRecord
         end
 
         # Construct the CQL statement
-        cql = "CREATE TABLE #{quote_table_name(table_name)} (\n  #{columns_cql.join(",\n  ")}\n) #{table_options};"
+        cql = "CREATE TABLE IF NOT EXISTS #{quote_table_name(table_name)} (\n  #{columns_cql.join(",\n  ")}\n) #{table_options};"
 
         # Execute the CQL statement
         @connection.execute(cql)
