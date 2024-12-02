@@ -559,6 +559,9 @@ module ActiveRecord
 
         puts "type: #{type.inspect}"
         puts "type methods: #{type.methods.sort.join(', ')}"
+
+        type.define_singleton_method(:deduplicate) { self }
+
         Column.new(name, default, type, is_null)
       end
 
