@@ -273,8 +273,45 @@ module SqlToCqlParser
     end
 
     def parse_insert
-      # Implement INSERT parsing if needed
-      raise "INSERT parsing not implemented yet."
+      expect(:keyword, 'INSERT')
+      expect(:keyword, 'INTO')
+      table_name = expect(:identifier).value
+
+      # Handle column list
+      expect(:symbol, '(')
+      columns = []
+      while current_token && current_token.type != :symbol || current_token.value != ')'
+        columns << expect(:identifier).value
+        if current_token && current_token.type == :symbol && current_token.value == ','
+          expect(:symbol, ',')
+        else
+          break
+        end
+      end
+      expect(:symbol, ')')
+
+      # Handle VALUES
+      expect(:keyword, 'VALUES')
+      expect(:symbol, '(')
+      values = []
+      while current_token && current_token.type != :symbol || current_token.value != ')'
+        values << parse_condition_value
+        if current_token && current_token.type == :symbol && current_token.value == ','
+          expect(:symbol, ',')
+        else
+          break
+        end
+      end
+      expect(:symbol, ')')
+
+      expect(:symbol, ';') if current_token && current_token.value == ';'
+
+      {
+        type: 'INSERT',
+        table_name: table_name,
+        columns: columns,
+        values: values
+      }
     end
 
     def parse_update

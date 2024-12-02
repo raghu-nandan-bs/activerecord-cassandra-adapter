@@ -19,7 +19,7 @@ module SqlToCqlParser
       IF EXISTS
     ].freeze
 
-    SYMBOLS = %w[( ) , ; = .].freeze
+    SYMBOLS = %w[( ) ? , ; = .].freeze
 
     def initialize(input)
       @input = input.strip
