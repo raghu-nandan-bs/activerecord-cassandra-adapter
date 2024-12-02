@@ -195,6 +195,11 @@ module SqlToCqlParser
     def parse_condition_value
       token = current_token
       case token.type
+      when :symbol
+        if token.value == '?'
+          expect(:symbol, '?')
+          return '?'
+        end
       when :literal
         value = "'#{token.value}'"
         expect(:literal)
