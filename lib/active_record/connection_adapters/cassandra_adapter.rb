@@ -38,13 +38,13 @@ module ActiveRecord
         false
       end
 
-      # def exec_query(sql, name = nil, binds = [])
-      #   parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-      #   puts "parsed_sql: #{parsed_sql}"
-      #   puts "exec_query: #{sql}"
-      #   puts " I am connection and I have following methods: #{@connection.methods}"
-      #   @connection.execute(sql)
-      # end
+      def exec_query(sql, name = nil, binds = [])
+        parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
+        puts "parsed_sql: #{parsed_sql}"
+        puts "exec_query: #{sql}"
+        puts " I am connection and I have following methods: #{@connection.methods}"
+        @connection.execute(sql)
+      end
 
       # def exec_query(arel, name = 'SQL', binds = [], prepare: false)
       #   puts "exec_query: #{arel.inspect}"
