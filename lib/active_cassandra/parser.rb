@@ -153,9 +153,112 @@ module SqlToCqlParser
       { type: 'DROP_TABLE', table_name: table_name }
     end
 
+    def parse_select_columns
+      if current_token.type == :symbol && current_token.value == '*'
+        expect(:symbol, '*')
+        return ['*']
+      else
+        columns = []
+        while current_token && !(current_token.type == :keyword && %w(FROM WHERE LIMIT ORDER).include?(current_token.value.upcase)) && !(current_token.type == :symbol && current_token.value == ';')
+          if current_token.type == :identifier
+            columns << expect(:identifier).value
+          else
+            raise "Unexpected token in SELECT columns: #{current_token.type} #{current_token.value}"
+          end
+          break unless current_token && current_token.type == :symbol && current_token.value == ','
+          expect(:symbol, ',')
+        end
+        columns
+      end
+    end
+
+    def parse_where
+      expect(:keyword, 'WHERE')
+      conditions = []
+      while current_token && !(current_token.type == :keyword && %w(LIMIT ORDER).include?(current_token.value.upcase)) && !(current_token.type == :symbol && current_token.value == ';')
+        left = expect(:identifier).value
+        operator = expect(:symbol, '=').value # Simplistic: only handling '=' operator
+        right = parse_condition_value
+        conditions << { left: left, operator: operator, right: right }
+        break unless current_token && current_token.type == :keyword && current_token.value.upcase == 'AND'
+        expect(:keyword, 'AND')
+      end
+      conditions
+    end
+
+
+    def parse_condition_value
+      token = current_token
+      case token.type
+      when :literal
+        value = token.value
+        expect(:literal)
+        value
+      when :number
+        value = token.value.to_i
+        expect(:number)
+        value
+      when :keyword
+        if ['TRUE', 'FALSE'].include?(token.value.upcase)
+          value = token.value.downcase == 'true'
+          expect(:keyword)
+          value
+        else
+          raise "Unsupported condition value keyword: #{token.value}"
+        end
+      else
+        raise "Unsupported condition value type: #{token.type}"
+      end
+    end
+
+    def parse_limit
+      expect(:keyword, 'LIMIT')
+      limit = expect(:number).value.to_i
+      limit
+    end
+
+    def parse_order_by
+      expect(:keyword, 'ORDER')
+      expect(:keyword, 'BY')
+      column = expect(:identifier).value
+      direction = 'ASC' # Default direction
+      if current_token&.type == :keyword && %w(ASC DESC).include?(current_token.value.upcase)
+        direction = expect(:keyword).value.upcase
+      end
+      { column: column, direction: direction }
+    end
+
     def parse_select
-      # Implement SELECT parsing if needed
-      raise "SELECT parsing not implemented yet."
+      expect(:keyword, 'SELECT')
+      columns = parse_select_columns
+      expect(:keyword, 'FROM')
+      table_name = expect(:identifier).value
+      where_clause = nil
+      limit = nil
+      order_by = nil
+
+      if current_token&.type == :keyword && current_token.value.upcase == 'WHERE'
+        where_clause = parse_where
+      end
+
+      if current_token&.type == :keyword && current_token.value.upcase == 'LIMIT'
+        limit = parse_limit
+      end
+
+      if current_token&.type == :keyword && current_token.value.upcase == 'ORDER'
+        order_by = parse_order_by
+      end
+
+      expect(:symbol, ';') if current_token && current_token.value == ';'
+
+      {
+        type: 'SELECT',
+        columns: columns,
+        table_name: table_name,
+        where: where_clause,
+        limit: limit,
+        order_by: order_by
+      }
     end
 
     def parse_insert
