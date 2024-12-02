@@ -50,7 +50,13 @@ module ActiveRecord
         puts "rows: #{rows.inspect}"
         puts "rows.methods: #{rows.methods}"
 
-        rows
+        convert_to_active_record_result(rows)
+      end
+
+      def convert_to_active_record_result(cassandra_result)
+        columns = cassandra_result.first.keys
+        rows = cassandra_result.map(&:values)
+        ActiveRecord::Result.new(columns, rows)
       end
 
       def current_keyspace
