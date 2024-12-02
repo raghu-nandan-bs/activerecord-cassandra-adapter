@@ -337,6 +337,10 @@ module ActiveRecord
           column(name, :string, options)
         end
 
+        def timestamps(name, options = {})
+          column(name, :timestamp, options)
+        end
+
         def text(name, options = {})
           column(name, :text, options)
         end
