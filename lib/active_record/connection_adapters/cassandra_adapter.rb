@@ -72,7 +72,6 @@ module ActiveRecord
         #escaped_table_name = table_name.gsub("'", "''")
         #escaped_keyspace = @current_keyspace.gsub("'", "''")
         qry = ""
-        table_name = '%' if table_name.nil?
         if type == "BASE TABLE" || !table_name.nil?
           qry = <<-CQL
             SELECT table_name
