@@ -415,6 +415,7 @@ module ActiveRecord
         end
       end # class ColumnDefinition
 
+      public
       def create_table(table_name, options = {})
         options[:force] = true if options[:force].nil?
 
