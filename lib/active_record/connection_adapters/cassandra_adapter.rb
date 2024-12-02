@@ -417,6 +417,8 @@ module ActiveRecord
 
       public
       def create_table(table_name, options = {})
+        puts "create_table: #{table_name}"
+        puts "options: #{options}"
         options[:force] = true if options[:force].nil?
 
         # Handle table options
