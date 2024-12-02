@@ -8,7 +8,7 @@ module SqlToCqlParser
 
     parsed_sql = parser.parse
     puts "parsed_sql: #{parsed_sql}"
-    parsed_sql
+    def parse
       statement = parse_statement
       translate_to_cql(statement)
     end
