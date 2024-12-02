@@ -558,6 +558,7 @@ module ActiveRecord
         is_null = determine_null_constraint(table_name, field)
 
         puts "type: #{type.inspect}"
+        puts "type methods: #{type.methods.sort.join(', ')}"
         Column.new(name, default, type, is_null)
       end
 
