@@ -279,11 +279,14 @@ module SqlToCqlParser
     end
 
     def translate_to_cql(statement)
+      puts "translate_to_cql: #{statement.inspect}"
       case statement[:type]
       when 'CREATE_TABLE'
         translate_create_table(statement)
       when 'DROP_TABLE'
         translate_drop_table(statement)
+      when 'SELECT'
+        translate_select(statement)
       else
         raise "Unsupported statement type: #{statement[:type]}"
       end
@@ -309,6 +312,21 @@ module SqlToCqlParser
     def translate_drop_table(statement)
       table_name = statement[:table_name]
       "DROP TABLE #{quote_ident(table_name)};"
+    end
+
+    def translate_select(statement)
+      puts "translate_select: #{statement.inspect}"
+      columns = statement[:columns]
+      table_name = statement[:table_name]
+      where_clause = statement[:where]
+      limit = statement[:limit]
+      order_by = statement[:order_by]
+
+      cql = "SELECT #{columns.join(', ')} FROM #{quote_ident(table_name)}"
+      cql += " WHERE #{where_clause.map { |cond| "#{cond[:left]} = #{cond[:right]}" }.join(' AND ')}" if where_clause
+      cql += " LIMIT #{limit}" if limit
+      cql += ";"
+      cql
     end
 
     def map_sql_type_to_cql(sql_type)
