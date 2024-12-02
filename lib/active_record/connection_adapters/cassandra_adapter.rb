@@ -562,9 +562,9 @@ module ActiveRecord
         name = field[:name]
         type = map_type(field[:type])
         default = nil
-        determine_null_constraint(table_name, field)
+        is_null = determine_null_constraint(table_name, field)
 
-        Column.new(name, default, type, null, table_name, default)
+        Column.new(name, default, type, is_null, table_name, default)
       end
 
       def escape_cql(identifier)
