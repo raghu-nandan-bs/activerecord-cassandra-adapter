@@ -196,7 +196,7 @@ module SqlToCqlParser
       token = current_token
       case token.type
       when :literal
-        value = token.value
+        value = "'#{token.value}'"
         expect(:literal)
         value
       when :number
@@ -211,6 +211,10 @@ module SqlToCqlParser
         else
           raise "Unsupported condition value keyword: #{token.value}"
         end
+      when :identifier
+        value = token.value
+        expect(:identifier)
+        value
       else
         raise "Unsupported condition value type: #{token.type}"
       end
@@ -328,6 +332,7 @@ module SqlToCqlParser
       order_by = statement[:order_by]
 
       cql = "SELECT #{columns.join(', ')} FROM #{table_name}"
+
       cql += " WHERE #{where_clause.map { |cond| "#{cond[:left]} = #{cond[:right]}" }.join(' AND ')}" if where_clause
       cql += " LIMIT #{limit}" if limit
       cql += ";"
