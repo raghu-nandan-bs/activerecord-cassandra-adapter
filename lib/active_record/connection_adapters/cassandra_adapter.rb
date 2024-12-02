@@ -564,7 +564,7 @@ module ActiveRecord
         default = nil
         is_null = determine_null_constraint(table_name, field)
 
-        Column.new(name, default, type, is_null, table_name, default)
+        Column.new(name, default, type, is_null)
       end
 
       def escape_cql(identifier)
