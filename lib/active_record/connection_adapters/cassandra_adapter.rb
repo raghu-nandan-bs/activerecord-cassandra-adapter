@@ -617,7 +617,7 @@ module ActiveRecord
           ORDER BY kind, position;
         CQL
 
-        result = @cassandra_connection.execute(cql)
+        result = @connection.execute(cql)
 
         # Sort partition keys first, then clustering keys based on position
         partition_keys = result.select { |row| row['kind'] == 'partition_key' }.sort_by { |row| row['position'] }
