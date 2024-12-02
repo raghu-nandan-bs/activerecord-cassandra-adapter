@@ -29,7 +29,7 @@ module SqlToCqlParser
 
     def tokenize
       while current_char
-        puts "current_char: #{current_char}"
+        puts "current_char: #{current_char}\n"
         if whitespace?(current_char)
           advance
         elsif comment_start?
