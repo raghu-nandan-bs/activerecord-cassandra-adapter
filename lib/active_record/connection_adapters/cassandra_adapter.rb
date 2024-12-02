@@ -605,20 +605,27 @@ module ActiveRecord
       end
 
       def primary_keys(table_name)
-        # Query system_schema.tables to get primary key information
+        keyspace = current_keyspace
+        table = table_name.to_s
+
         cql = <<-CQL
-          SELECT primary_key
-          FROM system_schema.tables
-          WHERE keyspace_name = '#{escape_cql(current_keyspace)}'
-            AND table_name = '#{escape_cql(table_name.to_s)}';
+          SELECT column_name, kind, position
+          FROM system_schema.columns
+          WHERE keyspace_name = '#{escape_cql(keyspace)}'
+            AND table_name = '#{escape_cql(table)}'
+            AND kind IN ('partition_key', 'clustering_key')
+          ORDER BY kind, position;
         CQL
 
-        result = @connection.execute(cql)
-        return [] if result.empty?
+        result = @cassandra_connection.execute(cql)
 
-        primary_key = result.first['primary_key']
-        primary_key || []
-      rescue Cassandra::Errors::InvalidError => e
+        # Sort partition keys first, then clustering keys based on position
+        partition_keys = result.select { |row| row['kind'] == 'partition_key' }.sort_by { |row| row['position'] }
+        clustering_keys = result.select { |row| row['kind'] == 'clustering_key' }.sort_by { |row| row['position'] }
+
+        # Combine partition and clustering keys
+        (partition_keys + clustering_keys).map { |row| row['column_name'] }
+      rescue Cassandra::Errors::InvalidQuery => e
         raise ActiveRecord::StatementInvalid.new(e.message)
       end
 
