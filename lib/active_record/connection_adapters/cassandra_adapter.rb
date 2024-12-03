@@ -114,7 +114,7 @@ module ActiveRecord
             parsed_sql_tokens[:values] << "?"
             binds << uuid
 
-            parsed_sql_cql = SqlToCqlParser.tokens_to_cql(parsed_sql_tokens)
+            parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)
           end
 
           puts "binds: #{binds.inspect}"
