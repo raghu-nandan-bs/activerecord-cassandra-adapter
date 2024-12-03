@@ -329,6 +329,8 @@ module SqlToCqlParser
       raise "DELETE parsing not implemented yet."
     end
 
+    public
+
     def translate_to_cql(statement)
 
       puts "translate_to_cql: #{statement.inspect}"

@@ -8,4 +8,9 @@ module SqlToCqlParser
     parser = Parser.new(tokens)
     parser.parse
   end
+
+  def self.tokens_to_cql(tokens)
+    parser = Parser.new(tokens)
+    parser.parse
+  end
 end
