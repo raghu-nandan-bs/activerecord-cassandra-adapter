@@ -58,6 +58,14 @@ module ActiveRecord
         end
       end
 
+      def get_table_name(table_name)
+        if table_name.include?(".")
+          table_name.split(".").last
+        else
+          table_name
+        end
+      end
+
       def supports_count_distinct?
         false
       end
@@ -81,9 +89,10 @@ module ActiveRecord
         puts "parsed_sql_cql: #{parsed_sql_cql}"
 
         table_name = parsed_sql_tokens[:table_name]
-        puts "table_name: #{table_name}"
         keyspace = get_keyspace(table_name)
         puts "table_name: #{table_name}, keyspace: #{keyspace}"
+        table_name = get_table_name(table_name)
+        puts "table_name: #{table_name}"
         table = get_table_definition(keyspace, table_name)
         puts "table: #{table.inspect}"
 
