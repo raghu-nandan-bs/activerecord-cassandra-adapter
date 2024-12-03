@@ -247,7 +247,21 @@ module SqlToCqlParser
 
     def parse_limit
       expect(:keyword, 'LIMIT')
-      limit = expect(:number).value.to_i
+      token = current_token
+      case token.type
+      when :number
+        limit = token.value.to_i
+        expect(:number)
+      when :symbol
+        if token.value == '?'
+          limit = '?'
+          expect(:symbol, '?')
+        else
+          raise "Expected number or ? for LIMIT, got #{token.type}: #{token.value}"
+        end
+      else
+        raise "Expected number or ? for LIMIT, got #{token.type}: #{token.value}"
+      end
       limit
     end
 
