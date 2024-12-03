@@ -46,7 +46,7 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-        puts "sql to execute: #{sql}, binds: #{binds}"
+
         parsed_sql = SqlToCqlParser.to_cql(sql)
 
         puts "parsed_sql: #{parsed_sql}"
@@ -54,6 +54,7 @@ module ActiveRecord
           parsed_sql = parsed_sql.gsub('?', '%s')
           # typecast binds to respective cql types
           binds = binds.map { |bind| typecast_bind(bind) }
+          puts "sql to execute: #{sql}, binds: #{binds}"
           rows = @connection.execute(parsed_sql, arguments: binds)
         else
           rows = @connection.execute(parsed_sql)
