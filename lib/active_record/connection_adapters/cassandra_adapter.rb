@@ -62,6 +62,10 @@ module ActiveRecord
         puts "Connection methods: #{@connection.methods}"
         puts "Connection: #{@connection.inspect}"
 
+        puts "------------------------------------------------------"
+        puts "config methods: #{@config.methods}"
+        puts "config: #{@config.inspect}"
+
         if binds.any?
           # parsed_sql = parsed_sql.gsub('?', '%s')
           # typecast binds to respective cql types
