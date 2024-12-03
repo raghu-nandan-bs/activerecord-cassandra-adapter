@@ -111,8 +111,8 @@ module ActiveRecord
           if should_inject_primary_key?(table_definition, binds)
             uuid = SecureRandom.uuid
             parsed_sql_tokens[:columns] << "id"
-            parsed_sql_tokens[:values] << "?"
-            binds << uuid
+            parsed_sql_tokens[:values] << "uuid()"
+            # binds << uuid
 
             parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
           end
