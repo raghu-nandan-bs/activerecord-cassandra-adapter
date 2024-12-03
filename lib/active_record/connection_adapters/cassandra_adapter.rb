@@ -97,7 +97,7 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-
+        puts "++++++++++ processing sql: #{sql}"
         parsed_sql = SqlToCqlParser.to_cql(sql)
         parsed_sql_tokens = parsed_sql[:tokens]
         parsed_sql_cql = parsed_sql[:cql]
@@ -545,6 +545,7 @@ module ActiveRecord
 
         # Execute the CQL statement
         @connection.execute(cql)
+        @cluster.refresh_schema
       end
 
       private
