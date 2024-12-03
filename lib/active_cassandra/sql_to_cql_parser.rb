@@ -5,11 +5,15 @@ module SqlToCqlParser
   def self.to_cql(sql)
     tokenizer = Tokenizer.new(sql)
     tokens = tokenizer.tokenize
+    puts ">>>>>>>>>>>>>>>"
+    puts "tokens: #{tokens.inspect}"
     parser = Parser.new(tokens)
     parser.parse
   end
 
   def self.tokens_to_cql(tokens)
+    puts "<<<<<<<<<<<<<<<<"
+    puts "tokens: #{tokens.inspect}"
     parser = Parser.new(tokens)
     parser.parse
   end
