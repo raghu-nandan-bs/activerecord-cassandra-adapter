@@ -330,16 +330,17 @@ module SqlToCqlParser
     end
 
     def translate_to_cql(statement)
+
       puts "translate_to_cql: #{statement.inspect}"
       case statement[:type]
       when 'CREATE_TABLE'
-        translate_create_table(statement)
+        { cql: translate_create_table(statement), tokens: statement }
       when 'DROP_TABLE'
-        translate_drop_table(statement)
+        { cql: translate_drop_table(statement), tokens: statement }
       when 'SELECT'
-        translate_select(statement)
+        { cql: translate_select(statement), tokens: statement }
       when 'INSERT'
-        translate_insert(statement)
+        { cql: translate_insert(statement), tokens: statement }
       else
         raise "Unsupported statement type: #{statement[:type]}"
       end

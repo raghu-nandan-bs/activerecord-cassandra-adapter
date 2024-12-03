@@ -48,16 +48,29 @@ module ActiveRecord
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
 
         parsed_sql = SqlToCqlParser.to_cql(sql)
+        parsed_sql_tokens = parsed_sql[:tokens]
+        parsed_sql_cql = parsed_sql[:cql]
+        puts "parsed_sql_tokens: #{parsed_sql_tokens}"
+        puts "parsed_sql_cql: #{parsed_sql_cql}"
 
-        puts "parsed_sql: #{parsed_sql}"
+        schema = @connection.cluster.schema.keyspace(keyspace)
+        puts "------------------------------------------------------"
+        puts "Keyspace: #{keyspace}"
+        schema.tables.each do |table_name, table|
+          puts "Table: #{table_name}"
+          table.columns.each do |column_name, column|
+            puts "  Column: #{column_name}, Type: #{column.type}"
+          end
+        end
+
         if binds.any?
           # parsed_sql = parsed_sql.gsub('?', '%s')
           # typecast binds to respective cql types
           binds = binds.map { |bind| typecast_bind(bind) }
           puts "sql to execute: #{sql}, binds: #{binds}"
-          rows = @connection.execute(parsed_sql, arguments: binds)
+          rows = @connection.execute(parsed_sql_cql, arguments: binds)
         else
-          rows = @connection.execute(parsed_sql)
+          rows = @connection.execute(parsed_sql_cql)
         end
         puts "rows: #{rows.inspect}"
         puts "rows.methods: #{rows.methods}"
@@ -454,6 +467,8 @@ module ActiveRecord
 
         # Initialize column definitions array
         columns_cql = []
+
+        puts "create table -> table_options: #{table_options}"
 
         # Handle primary key options
         primary_key = options[:primary_key] || 'id'
