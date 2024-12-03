@@ -47,6 +47,7 @@ module ActiveRecord
         puts "keyspace: #{keyspace.inspect}"
         table = keyspace.table(t)
         puts "table: #{table.inspect}"
+        puts "table.partition_key: #{table.partition_key}"
         table
       end
 
