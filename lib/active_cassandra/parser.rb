@@ -11,8 +11,11 @@ module SqlToCqlParser
       translate_to_cql(statement)
     end
 
-    def translate_to_cql(statement)
+    def self.translate_to_cql(statement)
+      translate_to_cql(statement)
+    end
 
+    def translate_to_cql(statement)
       puts "translate_to_cql: #{statement.inspect}"
       case statement[:type]
       when 'CREATE_TABLE'
