@@ -42,6 +42,20 @@ module ActiveRecord
         puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
       end
 
+      def get_table_definition(ks, t)
+        table = @cluster.keyspace(ks).table(t)
+        puts "table: #{table.inspect}"
+        table
+      end
+
+      def get_keyspace(table_name)
+        if "." in table_name
+          table_name.split(".").first
+        else
+          current_keyspace
+        end
+      end
+
       def supports_count_distinct?
         false
       end
@@ -64,14 +78,11 @@ module ActiveRecord
         puts "parsed_sql_tokens: #{parsed_sql_tokens}"
         puts "parsed_sql_cql: #{parsed_sql_cql}"
 
-
-        puts "------------------------------------------------------"
-        puts "Connection methods: #{@connection.methods}"
-        puts "Connection: #{@connection.inspect}"
-
-        puts "------------------------------------------------------"
-        puts "config methods: #{@config.methods}"
-        puts "config: #{@config.inspect}"
+        table_name = parsed_sql[:table]
+        keyspace = get_keyspace(table_name)
+        puts "table_name: #{table_name}, keyspace: #{keyspace}"
+        table = get_table_definition(keyspace, table_name)
+        puts "table: #{table.inspect}"
 
         if binds.any?
           # parsed_sql = parsed_sql.gsub('?', '%s')
