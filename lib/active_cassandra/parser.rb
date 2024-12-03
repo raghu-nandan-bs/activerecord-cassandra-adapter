@@ -320,7 +320,8 @@ module SqlToCqlParser
       expect(:symbol, '(')
       columns = []
       while current_token && current_token.type != :symbol || current_token.value != ')'
-        columns << expect(:identifier).value
+        token = expect(current_token.type == :keyword ? :keyword : :identifier)
+        columns << token.value
         if current_token && current_token.type == :symbol && current_token.value == ','
           expect(:symbol, ',')
         else
