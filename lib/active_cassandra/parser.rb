@@ -11,6 +11,23 @@ module SqlToCqlParser
       translate_to_cql(statement)
     end
 
+    def translate_to_cql(statement)
+
+      puts "translate_to_cql: #{statement.inspect}"
+      case statement[:type]
+      when 'CREATE_TABLE'
+        { cql: translate_create_table(statement), tokens: statement }
+      when 'DROP_TABLE'
+        { cql: translate_drop_table(statement), tokens: statement }
+      when 'SELECT'
+        { cql: translate_select(statement), tokens: statement }
+      when 'INSERT'
+        { cql: translate_insert(statement), tokens: statement }
+      else
+        raise "Unsupported statement type: #{statement[:type]}"
+      end
+    end
+
     private
 
     def current_token
@@ -329,24 +346,6 @@ module SqlToCqlParser
       raise "DELETE parsing not implemented yet."
     end
 
-    public
-
-    def translate_to_cql(statement)
-
-      puts "translate_to_cql: #{statement.inspect}"
-      case statement[:type]
-      when 'CREATE_TABLE'
-        { cql: translate_create_table(statement), tokens: statement }
-      when 'DROP_TABLE'
-        { cql: translate_drop_table(statement), tokens: statement }
-      when 'SELECT'
-        { cql: translate_select(statement), tokens: statement }
-      when 'INSERT'
-        { cql: translate_insert(statement), tokens: statement }
-      else
-        raise "Unsupported statement type: #{statement[:type]}"
-      end
-    end
 
     def translate_create_table(statement)
       table_name = statement[:table_name]
