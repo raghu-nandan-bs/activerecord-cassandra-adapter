@@ -78,7 +78,8 @@ module ActiveRecord
         puts "parsed_sql_tokens: #{parsed_sql_tokens}"
         puts "parsed_sql_cql: #{parsed_sql_cql}"
 
-        table_name = parsed_sql[:table]
+        table_name = parsed_sql_tokens[:table]
+        puts "table_name: #{table_name}"
         keyspace = get_keyspace(table_name)
         puts "table_name: #{table_name}, keyspace: #{keyspace}"
         table = get_table_definition(keyspace, table_name)
