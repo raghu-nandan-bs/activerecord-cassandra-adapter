@@ -39,6 +39,11 @@ module ActiveRecord
         false
       end
 
+      def typecast_bind(bind)
+        # Use the type object to cast the value to the appropriate CQL type
+        bind.type.serialize(bind.value_before_type_cast)
+      end
+
       def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         puts "sql to execute: #{sql}, binds: #{binds}"
@@ -47,6 +52,8 @@ module ActiveRecord
         puts "parsed_sql: #{parsed_sql}"
         if binds.any?
           parsed_sql = parsed_sql.gsub('?', '%s')
+          # typecast binds to respective cql types
+          binds = binds.map { |bind| typecast_bind(bind) }
           rows = @connection.execute(parsed_sql, arguments: binds)
         else
           rows = @connection.execute(parsed_sql)
