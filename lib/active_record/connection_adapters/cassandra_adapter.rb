@@ -16,23 +16,30 @@ module ActiveRecord
       unless (keyspace = config[:keyspace] || config[:database])
         raise ArgumentError, "No database file specified. Missing argument: keyspace"
       end
-      client = Cassandra.cluster(
+      cluster = Cassandra.cluster(
         hosts:  ["#{host}"]
       )
       # client.each_host do |host| # automatically discovers all peers
       #   puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
       # end
-      session = client.connect(keyspace)
-      ConnectionAdapters::CassandraAdapter.new(session, logger, config)
+
+
+
+      session = cluster.connect(keyspace)
+      ConnectionAdapters::CassandraAdapter.new(session, logger, config, cluster)
     end
   end # class Base
 
   module ConnectionAdapters
     class CassandraAdapter < AbstractAdapter
-      def initialize(client, logger, config)
+      def initialize(client, logger, config, cluster)
         super(client, logger)
+        @cluster = cluster
         @config = config
         @connection = client
+
+        puts "cluster: #{@cluster.inspect}"
+        puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
       end
 
       def supports_count_distinct?
