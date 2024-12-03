@@ -43,7 +43,9 @@ module ActiveRecord
       end
 
       def get_table_definition(ks, t)
-        table = @cluster.keyspace(ks).table(t)
+        keyspace = @cluster.keyspace(ks)
+        puts "keyspace: #{keyspace.inspect}"
+        table = keyspace.table(t)
         puts "table: #{table.inspect}"
         table
       end
