@@ -126,7 +126,8 @@ module ActiveRecord
           end
 
           if should_inject_allow_filtering?(table_definition, parsed_sql_tokens[:columns])
-            parsed_sql_cql << " ALLOW FILTERING"
+            parsed_sql_cql = parsed_sql_cql.gsub(";", "")
+            parsed_sql_cql << " ALLOW FILTERING;"
           end
 
           puts "binds: #{binds.inspect}"
