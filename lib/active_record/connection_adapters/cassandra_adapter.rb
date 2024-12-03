@@ -49,7 +49,7 @@ module ActiveRecord
       end
 
       def get_keyspace(table_name)
-        if "." in table_name
+        if table_name.include?(".")
           table_name.split(".").first
         else
           current_keyspace
