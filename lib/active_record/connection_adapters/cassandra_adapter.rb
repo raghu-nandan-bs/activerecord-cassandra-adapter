@@ -66,6 +66,15 @@ module ActiveRecord
         true
       end
 
+      def should_inject_allow_filtering?(table_definition, query_columns)
+        primary_keys = table_definition.partition_key.map { |key| key.name }
+        if (primary_keys - query_columns).any?
+          true
+        else
+          false
+        end
+      end
+
       def get_keyspace(table_name)
         if table_name.include?(".")
           table_name.split(".").first
@@ -105,7 +114,6 @@ module ActiveRecord
         if binds.any?
           table_definition = get_table_definition(parsed_sql_tokens[:table_name])
 
-
           binds = binds.map { |bind| typecast_bind(bind) }
 
           if parsed_sql_tokens[:type] == "INSERT" && should_inject_primary_key?(table_definition, binds)
@@ -115,6 +123,10 @@ module ActiveRecord
             # binds << uuid
 
             parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
+          end
+
+          if should_inject_allow_filtering?(table_definition, parsed_sql_tokens[:columns])
+            parsed_sql_cql << " ALLOW FILTERING"
           end
 
           puts "binds: #{binds.inspect}"
