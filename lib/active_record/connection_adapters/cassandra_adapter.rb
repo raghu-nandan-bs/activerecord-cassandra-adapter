@@ -51,7 +51,7 @@ module ActiveRecord
 
         puts "parsed_sql: #{parsed_sql}"
         if binds.any?
-          parsed_sql = parsed_sql.gsub('?', '%s')
+          # parsed_sql = parsed_sql.gsub('?', '%s')
           # typecast binds to respective cql types
           binds = binds.map { |bind| typecast_bind(bind) }
           puts "sql to execute: #{sql}, binds: #{binds}"
