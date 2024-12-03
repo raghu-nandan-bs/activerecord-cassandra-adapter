@@ -44,6 +44,10 @@ module ActiveRecord
         bind.type.serialize(bind.value_before_type_cast)
       end
 
+      # def get_primary_key(table_name)
+      #   schema = @connection.
+      # end
+
       def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
 
@@ -53,15 +57,10 @@ module ActiveRecord
         puts "parsed_sql_tokens: #{parsed_sql_tokens}"
         puts "parsed_sql_cql: #{parsed_sql_cql}"
 
-        schema = @connection.cluster.schema.keyspace(keyspace)
+
         puts "------------------------------------------------------"
-        puts "Keyspace: #{keyspace}"
-        schema.tables.each do |table_name, table|
-          puts "Table: #{table_name}"
-          table.columns.each do |column_name, column|
-            puts "  Column: #{column_name}, Type: #{column.type}"
-          end
-        end
+        puts "Connection methods: #{@connection.methods}"
+        puts "Connection: #{@connection.inspect}"
 
         if binds.any?
           # parsed_sql = parsed_sql.gsub('?', '%s')
