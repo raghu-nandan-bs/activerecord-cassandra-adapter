@@ -5,6 +5,7 @@ require 'active_cassandra/cf'
 require 'active_cassandra/sqlparser.tab'
 require 'active_cassandra/cassandra_arel_visitor'
 require 'active_cassandra/sql_to_cql_parser'
+require 'securerandom'
 
 module ActiveRecord
   class Base
@@ -42,13 +43,27 @@ module ActiveRecord
         puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
       end
 
-      def get_table_definition(ks, t)
-        keyspace = @cluster.keyspace(ks)
-        puts "keyspace: #{keyspace.inspect}"
-        table = keyspace.table(t)
+      def get_table_definition( t)
+        ks = get_keyspace(t)
+        t = get_table_name(t)
+        table = @cluster.keyspace(ks).table(t)
         puts "table: #{table.inspect}"
         puts "table.partition_key: #{table.partition_key}"
         table
+      end
+
+      def get_primary_key(table_definition)
+        table_definition.partition_key
+      end
+
+      def should_inject_primary_key?(table_definition, bind_options)
+        if table_definition.partition_key.length == 1 &&
+          table_definition.partition_key.first.name == "id" &&
+          table_definition.partition_key.first.type == :uuid &&
+          bind_options.contains_key?(:id)
+          return false
+        end
+        true
       end
 
       def get_keyspace(table_name)
@@ -86,28 +101,26 @@ module ActiveRecord
         parsed_sql = SqlToCqlParser.to_cql(sql)
         parsed_sql_tokens = parsed_sql[:tokens]
         parsed_sql_cql = parsed_sql[:cql]
-        puts "parsed_sql_tokens: #{parsed_sql_tokens}"
-        puts "parsed_sql_cql: #{parsed_sql_cql}"
-
-        table_name = parsed_sql_tokens[:table_name]
-        keyspace = get_keyspace(table_name)
-        puts "table_name: #{table_name}, keyspace: #{keyspace}"
-        table_name = get_table_name(table_name)
-        puts "table_name: #{table_name}"
-        table = get_table_definition(keyspace, table_name)
-        puts "table: #{table.inspect}"
 
         if binds.any?
-          # parsed_sql = parsed_sql.gsub('?', '%s')
-          # typecast binds to respective cql types
+          table_definition = get_table_definition(parsed_sql_tokens[:table_name])
+
+
           binds = binds.map { |bind| typecast_bind(bind) }
-          puts "sql to execute: #{sql}, binds: #{binds}"
+
+          if should_inject_primary_key?(table_definition, binds)
+            puts "injecting primary key"
+            binds[:id] = SecureRandom.uuid
+          end
+
+          puts "binds: #{binds.inspect}"
+          puts "parsed_sql_cql: #{parsed_sql_cql}"
           rows = @connection.execute(parsed_sql_cql, arguments: binds)
         else
           rows = @connection.execute(parsed_sql_cql)
         end
-        puts "rows: #{rows.inspect}"
-        puts "rows.methods: #{rows.methods}"
+
+
 
         convert_to_active_record_result(rows)
       end
