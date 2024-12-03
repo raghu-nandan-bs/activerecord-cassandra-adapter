@@ -108,7 +108,7 @@ module ActiveRecord
 
           binds = binds.map { |bind| typecast_bind(bind) }
 
-          if should_inject_primary_key?(table_definition, binds)
+          if parsed_sql_tokens[:type] == "INSERT" && should_inject_primary_key?(table_definition, binds)
             uuid = SecureRandom.uuid
             parsed_sql_tokens[:columns] << "id"
             parsed_sql_tokens[:values] << "uuid()"
