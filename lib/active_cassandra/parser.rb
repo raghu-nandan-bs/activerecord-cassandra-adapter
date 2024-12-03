@@ -11,7 +11,7 @@ module SqlToCqlParser
       translate_to_cql(statement)
     end
 
-    def self.translate_to_cql(statement)
+    def self.to_cql(statement)
       translate_to_cql(statement)
     end
 

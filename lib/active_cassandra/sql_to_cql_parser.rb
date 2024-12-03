@@ -14,6 +14,6 @@ module SqlToCqlParser
   def self.translate_to_cql(tokens)
     puts "<<<<<<<<<<<<<<<<"
     puts "tokens: #{tokens.inspect}"
-    Parser.translate_to_cql(tokens)
+    Parser.to_cql(tokens)
   end
 end
