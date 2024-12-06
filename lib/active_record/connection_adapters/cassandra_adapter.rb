@@ -80,7 +80,7 @@ module ActiveRecord
         timestamp_columns = []
         table_definition.columns.map do |column|
           puts "checking table definition column: #{column.inspect}"
-          if column.type == "timestamp"
+          if column.type == "timestamp" || column.type == :timestamp
             timestamp_columns << column.name
           end
         end
