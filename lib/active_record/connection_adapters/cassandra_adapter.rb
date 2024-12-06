@@ -91,7 +91,8 @@ module ActiveRecord
             parsed_sql_tokens[:values][index] = "#{base}.#{milliseconds[0..2]}"
           end
         end
-
+        puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
+        puts "bind_values: #{bind_values.inspect}"
         parsed_sql_tokens[:values] = values
         binds = bind_values
         [parsed_sql_tokens, binds]
