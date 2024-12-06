@@ -154,7 +154,6 @@ module ActiveRecord
         table_definition = get_table_definition(parsed_sql_tokens[:table_name])
         if parsed_sql_tokens[:type] == "INSERT" && should_inject_primary_key?(table_definition, parsed_sql_tokens[:columns])
           parsed_sql_tokens = inject_primary_key(table_definition, parsed_sql_tokens)
-          parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
         end
 
         if parsed_sql_tokens[:type] == "SELECT" && should_inject_allow_filtering?(table_definition, parsed_sql_tokens[:columns])
@@ -167,6 +166,10 @@ module ActiveRecord
         puts "<<<AFTER TIMESTAMP FIX>>>"
         puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
         puts "binds: #{binds.inspect}"
+
+
+        parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
+
         if binds.any?
           binds = binds.map { |bind| typecast_bind(bind) }
           puts "binds: #{binds.inspect}"
