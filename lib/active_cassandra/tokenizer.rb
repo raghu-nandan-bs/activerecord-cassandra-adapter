@@ -85,6 +85,7 @@ module SqlToCqlParser
       puts "current_char: #{current_char}"
       puts "peek_char: #{peek_char}"
       advance
+      advance
     end
 
     def symbol?(char)
