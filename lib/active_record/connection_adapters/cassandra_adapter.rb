@@ -76,7 +76,12 @@ module ActiveRecord
       end
 
       def fix_timestamp_format(parsed_sql_tokens, binds)
-        values = parsed_sql_tokens[:values] || []
+        values = []
+        if parsed_sql_tokens[:type] == "INSERT"
+          values = parsed_sql_tokens[:values]
+        elsif parsed_sql_tokens[:type] == "UPDATE"
+          values = parsed_sql_tokens[:updates].map { |set_clause| set_clause[:value] }
+        end
 
         values.each_with_index do |value, index|
 
@@ -89,7 +94,7 @@ module ActiveRecord
             value = value[1..-2] if value.start_with?("'") && value.end_with?("'")
             base, milliseconds = value.split('.')
 
-            parsed_sql_tokens[:values][index] = "'#{base}.#{milliseconds[0..2]}'"
+            values[index] = "'#{base}.#{milliseconds[0..2]}'"
           end
         end
         binds.each_with_index do |bind_value, index|
@@ -98,6 +103,11 @@ module ActiveRecord
             base, milliseconds = bind_value.split('.')
             binds[index] = "'#{base}.#{milliseconds[0..2]}'"
           end
+        end
+        if parsed_sql_tokens[:type] == "INSERT"
+          parsed_sql_tokens[:values] = values
+        elsif parsed_sql_tokens[:type] == "UPDATE"
+          parsed_sql_tokens[:updates].each_with_index { |set_clause, index| set_clause[:value] = values[index] }
         end
         puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
         puts "binds: #{binds.inspect}"
