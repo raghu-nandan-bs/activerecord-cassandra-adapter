@@ -82,7 +82,7 @@ module ActiveRecord
           puts "checking table definition column: #{column.inspect}"
           puts "column.type: #{column.type.inspect}"
           puts "timestamp column type is #{Cassandra::Column::TIMESTAMP}"
-          if column.type == Cassandra::Column::TIMESTAMP
+          if column.type.to_s == "timestamp"
             timestamp_columns << column.name
           end
         end
