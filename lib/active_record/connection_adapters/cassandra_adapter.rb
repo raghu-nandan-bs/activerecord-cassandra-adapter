@@ -69,10 +69,8 @@ module ActiveRecord
       end
 
       def inject_primary_key(table_definition, parsed_sql_tokens)
-        uuid = SecureRandom.uuid
         parsed_sql_tokens[:columns] << "id"
         parsed_sql_tokens[:values] << "uuid()"
-        parsed_sql_tokens[:values] << uuid
         parsed_sql_tokens
       end
 
