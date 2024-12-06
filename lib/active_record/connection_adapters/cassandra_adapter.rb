@@ -76,7 +76,8 @@ module ActiveRecord
 
       def fix_timestamp_format(parsed_sql_tokens, binds)
         values = parsed_sql_tokens[:values] || []
-        bind_values = binds.map { |bind| bind.value_before_type_cast }
+        bind_values = binds.map { |bind| bind.value_before_type_cast } || []
+
         values.each_with_index do |value, index|
           # fix error: Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 16:25:13.403772': marshaling error: Milliseconds length exceeds expected (6))
           if value.is_a?(String) && value =~ /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}$/
@@ -85,6 +86,15 @@ module ActiveRecord
             parsed_sql_tokens[:values][index] = "#{base}.#{milliseconds[0..2]}"
           end
         end
+        bind_values.each_with_index do |bind_value, index|
+          if bind_value.is_a?(String) && bind_value =~ /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}$/
+            parsed_sql_tokens[:values][index] = "#{base}.#{milliseconds[0..2]}"
+          end
+        end
+
+        parsed_sql_tokens[:values] = values
+        binds = bind_values
+        [parsed_sql_tokens, binds]
       end
 
       def should_inject_allow_filtering?(table_definition, query_columns)
@@ -147,7 +157,7 @@ module ActiveRecord
         end
 
         # Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 14:48:14.359762': marshaling error: Milliseconds length exceeds expected (6))
-        fix_timestamp_format(parsed_sql_tokens, binds)
+        parsed_sql_tokens, binds = fix_timestamp_format(parsed_sql_tokens, binds)
 
         if binds.any?
           binds = binds.map { |bind| typecast_bind(bind) }
