@@ -43,10 +43,13 @@ module SqlToCqlParser
           @tokens << Token.new(:literal, parse_string)
         elsif digit?(current_char)
           number = parse_number
-          if number != ""
+          if number.nil?
+            puts "invalid number format"
             @tokens << Token.new(:number, number)
+          else
+            word = parse_word
+            @tokens << Token.new(:identifier, word)
           end
-          @tokens << Token.new(:number, number)
         else
           word = parse_word
           if KEYWORDS.include?(word.upcase)
@@ -138,7 +141,8 @@ module SqlToCqlParser
       # it's an invalid number format
       if current_char && current_char =~ /[A-Za-z_]/
         @position = start_pos
-        return ""
+        puts "invalid number format"
+        return nil
       end
 
       @input[start_pos...@position]
