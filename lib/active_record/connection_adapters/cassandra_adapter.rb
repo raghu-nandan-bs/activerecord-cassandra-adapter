@@ -114,7 +114,7 @@ module ActiveRecord
         parsed_sql = SqlToCqlParser.to_cql(sql)
         parsed_sql_tokens = parsed_sql[:tokens]
         parsed_sql_cql = parsed_sql[:cql]
-
+        puts "parsed_sql_cql: #{parsed_sql_cql}"
         if binds.any?
           table_definition = get_table_definition(parsed_sql_tokens[:table_name])
 
