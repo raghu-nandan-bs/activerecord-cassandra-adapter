@@ -42,11 +42,11 @@ module SqlToCqlParser
         elsif string_start?
           @tokens << Token.new(:literal, parse_string)
         elsif digit?(current_char)
-
-          number = Token.new(:number, parse_number)
-          if !number.value.empty?
-            @tokens << number
+          number = parse_number
+          if !number.empty?
+            @tokens << Token.new(:number, number)
           end
+          @tokens << Token.new(:number, number)
         else
           word = parse_word
           if KEYWORDS.include?(word.upcase)
@@ -137,9 +137,8 @@ module SqlToCqlParser
       # If the number is immediately followed by a letter or underscore,
       # it's an invalid number format
       if current_char && current_char =~ /[A-Za-z_]/
-        @position = start_pos  # Reset position
-        puts "invalid number format"
-        parse_word # parse word instead
+        @position = start_pos
+        return ""
       end
 
       @input[start_pos...@position]
