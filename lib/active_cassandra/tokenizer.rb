@@ -79,19 +79,22 @@ module SqlToCqlParser
     end
 
     def skip_comment
-      while current_char && current_char != "*" && peek_char != '/'
+      # Advance past the opening /*
+      advance
+      advance
+
+      # Continue until we find the closing */
+      while current_char && !(current_char == '*' && peek_char == '/')
         puts "[advancing] skipping comment..."
         puts "current_char: #{current_char}"
         puts "peek_char: #{peek_char}"
         puts "position: #{@position}"
         advance
       end
-      puts "skipping comment..."
-      puts "current_char: #{current_char}"
-      puts "peek_char: #{peek_char}"
-      puts "position: #{@position}"
-      advance
-      advance
+
+      # Advance past the closing */
+      advance if current_char
+      advance if current_char
     end
 
     def symbol?(char)
