@@ -80,10 +80,10 @@ module ActiveRecord
 
         values.each_with_index do |value, index|
 
-          evaluated = value.is_a?(String) && value =~ /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}$/
+          evaluated = value.is_a?(String) && value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
           puts "value: #{value}, matched? #{evaluated}"
           # fix error: Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 16:25:13.403772': marshaling error: Milliseconds length exceeds expected (6))
-          if value.is_a?(String) && value =~ /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}$/
+          if value.is_a?(String) && value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
             # Trim milliseconds to 3 digits
             base, milliseconds = value.split('.')
             parsed_sql_tokens[:values][index] = "#{base}.#{milliseconds[0..2]}"
