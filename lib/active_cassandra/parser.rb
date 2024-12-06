@@ -338,6 +338,9 @@ module SqlToCqlParser
       values = []
       while current_token && current_token.type != :symbol || current_token.value != ')'
         values << parse_condition_value
+        puts "running: `parse_insert`"
+        puts "current_token: #{current_token.inspect}"
+        puts "values so far: #{values.inspect}"
         if current_token && current_token.type == :symbol && current_token.value == ','
           expect(:symbol, ',')
         else
