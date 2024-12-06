@@ -142,6 +142,12 @@ module ActiveRecord
         convert_to_active_record_result(rows)
       end
 
+      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+        puts "sql: #{sql}"
+        exec_query(sql, name,  binds)
+
+      end
+
       def convert_to_active_record_result(cassandra_result)
         columns = []
         rows = []
