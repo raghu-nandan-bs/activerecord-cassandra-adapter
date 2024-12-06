@@ -143,8 +143,8 @@ module ActiveRecord
       end
 
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        puts "sql: #{sql}"
-        exec_query(sql, name,  binds)
+        puts "sql: #{arel}"
+        exec_query(arel, name,  binds)
 
       end
 
