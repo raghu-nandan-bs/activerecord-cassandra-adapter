@@ -31,7 +31,7 @@ module SqlToCqlParser
     def tokenize
       while current_char
         puts "current_char: #{current_char}\n"
-        if whitespace?(current_char)
+        elsif whitespace?(current_char)
           advance
         elsif comment_start?
           skip_comment
@@ -69,19 +69,20 @@ module SqlToCqlParser
       @position += 1
     end
 
+
     def whitespace?(char)
       char =~ /\s/
     end
 
     def comment_start?
-      current_char == '-' && peek_char == '-'
+      current_char == '/' && peek_char == '*'
     end
 
     def skip_comment
-      while current_char && current_char != "\n"
+      while current_char && current_char != "*" && peek_char != '/'
         advance
       end
-      advance # Skip the newline character
+      advance
     end
 
     def symbol?(char)
