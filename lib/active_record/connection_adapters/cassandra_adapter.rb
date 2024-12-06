@@ -60,12 +60,12 @@ module ActiveRecord
       end
 
       def should_inject_primary_key?(table_definition, columns)
-        if table_definition.partition_key.length == 1 &&
-          table_definition.partition_key.first.name == "id" &&
-          table_definition.partition_key.first.type == :uuid &&
-          columns.include?("id")
+        pk = table_definition.partition_key.first.name
+        if columns.include?(pk)
+          puts "should_inject_primary_key? -> false"
           return false
         end
+        puts "should_inject_primary_key? -> true"
         true
       end
 

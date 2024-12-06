@@ -237,7 +237,7 @@ module ActiveRecord
           when Type::Time::Value then "'#{quoted_time(value)}'"
           when Date, Time then "'#{quoted_date(value)}'"
           when Class      then "'#{value}'"
-          when Cassandra::TimeUuid then "'#{value}'"
+          when Cassandra::TimeUuid then "#{value}"
           else raise TypeError, "can't quote #{value.class.name}"
           end
         end
