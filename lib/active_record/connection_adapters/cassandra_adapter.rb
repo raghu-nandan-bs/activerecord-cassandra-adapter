@@ -74,6 +74,12 @@ module ActiveRecord
         parsed_sql_tokens
       end
 
+      def fix_timestamp_format(parsed_sql_tokens, binds)
+        parsed_sql_tokens[:columns].map do |column|
+          puts "column: #{column.inspect}"
+        end
+      end
+
       def should_inject_allow_filtering?(table_definition, query_columns)
         primary_keys = table_definition.partition_key.map { |key| key.name }
         if (primary_keys - query_columns).any?
@@ -132,6 +138,9 @@ module ActiveRecord
           parsed_sql_cql = parsed_sql_cql.gsub(";", "")
           parsed_sql_cql << " ALLOW FILTERING;"
         end
+
+        # Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 14:48:14.359762': marshaling error: Milliseconds length exceeds expected (6))
+        fix_timestamp_format(parsed_sql_tokens, binds)
 
         if binds.any?
           binds = binds.map { |bind| typecast_bind(bind) }
