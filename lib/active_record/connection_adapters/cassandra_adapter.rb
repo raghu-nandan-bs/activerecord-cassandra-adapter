@@ -100,7 +100,6 @@ module ActiveRecord
         end
         puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
         puts "bind_values: #{binds.inspect}"
-        parsed_sql_tokens[:values] = values
         [parsed_sql_tokens, binds]
       end
 
