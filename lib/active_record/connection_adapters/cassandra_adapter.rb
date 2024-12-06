@@ -76,7 +76,6 @@ module ActiveRecord
 
       def fix_timestamp_format(parsed_sql_tokens, binds)
         values = parsed_sql_tokens[:values] || []
-        bind_values = binds.map { |bind| bind.value_before_type_cast } || []
 
         values.each_with_index do |value, index|
 
@@ -85,19 +84,23 @@ module ActiveRecord
           # fix error: Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 16:25:13.403772': marshaling error: Milliseconds length exceeds expected (6))
           if value.is_a?(String) && value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
             # Trim milliseconds to 3 digits
+            # Remove single quotes first
+            value = value[1..-2] if value.start_with?("'") && value.end_with?("'")
             base, milliseconds = value.split('.')
-            parsed_sql_tokens[:values][index] = "#{base}.#{milliseconds[0..2]}"
+
+            parsed_sql_tokens[:values][index] = "'#{base}.#{milliseconds[0..2]}'"
           end
         end
-        bind_values.each_with_index do |bind_value, index|
-          if bind_value.is_a?(String) && bind_value =~ /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}$/
-            parsed_sql_tokens[:values][index] = "#{base}.#{milliseconds[0..2]}"
+        binds.each_with_index do |bind_value, index|
+          if bind_value.is_a?(String) && bind_value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
+            bind_value = bind_value[1..-2] if bind_value.start_with?("'") && bind_value.end_with?("'")
+            base, milliseconds = bind_value.split('.')
+            binds[index] = "'#{base}.#{milliseconds[0..2]}'"
           end
         end
         puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
-        puts "bind_values: #{bind_values.inspect}"
+        puts "bind_values: #{binds.inspect}"
         parsed_sql_tokens[:values] = values
-        binds = bind_values
         [parsed_sql_tokens, binds]
       end
 
