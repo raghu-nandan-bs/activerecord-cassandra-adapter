@@ -84,6 +84,7 @@ module ActiveRecord
             base, milliseconds = value.split('.')
             parsed_sql_tokens[:values][index] = "#{base}.#{milliseconds[0..2]}"
           end
+        end
       end
 
       def should_inject_allow_filtering?(table_definition, query_columns)
