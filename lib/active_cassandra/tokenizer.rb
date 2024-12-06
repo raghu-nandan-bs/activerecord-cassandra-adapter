@@ -31,7 +31,7 @@ module SqlToCqlParser
     def tokenize
       while current_char
         puts "current_char: #{current_char}\n"
-        elsif whitespace?(current_char)
+        if whitespace?(current_char)
           advance
         elsif comment_start?
           skip_comment
@@ -68,7 +68,6 @@ module SqlToCqlParser
     def advance
       @position += 1
     end
-
 
     def whitespace?(char)
       char =~ /\s/
