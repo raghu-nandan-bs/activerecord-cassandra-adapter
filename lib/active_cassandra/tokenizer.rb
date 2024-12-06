@@ -30,6 +30,7 @@ module SqlToCqlParser
 
     def tokenize
       while current_char
+        puts "position: #{@position}"
         puts "current_char: #{current_char}\n"
         if whitespace?(current_char)
           advance
@@ -84,6 +85,7 @@ module SqlToCqlParser
       puts "skipping comment..."
       puts "current_char: #{current_char}"
       puts "peek_char: #{peek_char}"
+      puts "position: #{@position}"
       advance
       advance
     end
