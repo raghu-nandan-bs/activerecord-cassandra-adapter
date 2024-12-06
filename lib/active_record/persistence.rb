@@ -377,6 +377,9 @@ module ActiveRecord
         puts "connection: #{connection}"
         puts "primary_key: #{primary_key}"
         puts "primary_key_value: #{primary_key_value}"
+
+        puts "im: #{im}"
+        puts "--------------------------------"
         connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
       end
 

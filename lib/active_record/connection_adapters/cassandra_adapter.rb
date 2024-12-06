@@ -223,9 +223,6 @@ module ActiveRecord
         end
       end
 
-
-
-
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         log(sql, name)
 
