@@ -80,6 +80,10 @@ module SqlToCqlParser
 
     def skip_comment
       while current_char && current_char != "*" && peek_char != '/'
+        puts "[advancing] skipping comment..."
+        puts "current_char: #{current_char}"
+        puts "peek_char: #{peek_char}"
+        puts "position: #{@position}"
         advance
       end
       puts "skipping comment..."
