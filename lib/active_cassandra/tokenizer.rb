@@ -75,12 +75,16 @@ module SqlToCqlParser
 
     def comment_start?
       current_char == '/' && peek_char == '*'
+      puts "found comment begin..."
     end
 
     def skip_comment
       while current_char && current_char != "*" && peek_char != '/'
         advance
       end
+      puts "skipping comment..."
+      puts "current_char: #{current_char}"
+      puts "peek_char: #{peek_char}"
       advance
     end
 
