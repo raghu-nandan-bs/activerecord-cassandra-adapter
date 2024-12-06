@@ -81,7 +81,8 @@ module ActiveRecord
         table_definition.columns.map do |column|
           puts "checking table definition column: #{column.inspect}"
           puts "column.type: #{column.type.inspect}"
-          if column.type == "timestamp" || column.type == :timestamp
+          puts "timestamp column type is #{Cassandra::Column::TIMESTAMP}"
+          if column.type == Cassandra::Column::TIMESTAMP
             timestamp_columns << column.name
           end
         end
