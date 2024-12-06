@@ -9,9 +9,9 @@ require 'securerandom'
 
 module ActiveRecord
   class Base
-    def initialize(params={})
-      super(params)
-    end
+    # def initialize(params={})
+    #   super(params)
+    # end
 
     def self.cassandra_connection(config)
       # config.symbolize_keys!
