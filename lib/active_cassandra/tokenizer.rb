@@ -139,7 +139,7 @@ module SqlToCqlParser
       if current_char && current_char =~ /[A-Za-z_]/
         @position = start_pos  # Reset position
         puts "invalid number format"
-        return ''  # Return empty string
+        parse_word # parse word instead
       end
 
       @input[start_pos...@position]
