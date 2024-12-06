@@ -9,6 +9,7 @@ require 'securerandom'
 
 module ActiveRecord
   class Base
+
     def self.cassandra_connection(config)
       # config.symbolize_keys!
       host = config[:host] || '127.0.1.1'
@@ -35,6 +36,7 @@ module ActiveRecord
     class CassandraAdapter < AbstractAdapter
       def initialize(client, logger, config, cluster)
         #super(client, logger, config, cluster)
+        @visitor = Arel::Visitors::ToSql.new(self)
         @cluster = cluster
         @config = config
         @connection = client
@@ -142,11 +144,9 @@ module ActiveRecord
         convert_to_active_record_result(rows)
       end
 
-      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        puts "sql: #{arel}"
-        exec_query(arel, name,  binds)
+      # def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
 
-      end
+      # end
 
       def convert_to_active_record_result(cassandra_result)
         columns = []
