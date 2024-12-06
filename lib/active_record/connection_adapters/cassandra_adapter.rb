@@ -34,7 +34,7 @@ module ActiveRecord
   module ConnectionAdapters
     class CassandraAdapter < AbstractAdapter
       def initialize(client, logger, config, cluster)
-        super(client, logger)
+        super(client, logger, config, cluster)
         @cluster = cluster
         @config = config
         @connection = client
