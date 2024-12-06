@@ -79,6 +79,7 @@ module ActiveRecord
         table_definition = get_table_definition(parsed_sql_tokens[:table_name])
         timestamp_columns = []
         table_definition.columns.map do |column|
+          puts "checking table definition column: #{column.inspect}"
           if column.type == :timestamp
             timestamp_columns << column.name
           end
