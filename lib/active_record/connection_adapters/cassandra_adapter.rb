@@ -40,6 +40,7 @@ module ActiveRecord
         @cluster = cluster
         @config = config
         @connection = client
+        @uuidGenerator = Cassandra::Uuid::Generator.new
 
         puts "cluster: #{@cluster.inspect}"
         puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
@@ -70,7 +71,7 @@ module ActiveRecord
 
       def inject_primary_key(table_definition, parsed_sql_tokens)
         parsed_sql_tokens[:columns] << "id"
-        parsed_sql_tokens[:values] << "uuid()"
+        parsed_sql_tokens[:values] << @uuidGenerator.now
         parsed_sql_tokens
       end
 
