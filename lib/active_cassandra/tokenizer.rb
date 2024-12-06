@@ -76,6 +76,7 @@ module SqlToCqlParser
     def comment_start?
       current_char == '/' && peek_char == '*'
       puts "found comment begin..."
+      advance
     end
 
     def skip_comment
