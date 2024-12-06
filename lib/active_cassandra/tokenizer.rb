@@ -43,7 +43,7 @@ module SqlToCqlParser
           @tokens << Token.new(:literal, parse_string)
         elsif digit?(current_char)
           number = parse_number
-          if number.nil?
+          if !number
             puts "invalid number format"
             @tokens << Token.new(:number, number)
           else
