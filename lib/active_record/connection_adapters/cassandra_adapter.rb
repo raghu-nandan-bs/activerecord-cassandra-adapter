@@ -75,8 +75,20 @@ module ActiveRecord
       end
 
       def fix_timestamp_format(parsed_sql_tokens, binds)
+
+        table_definition = get_table_definition(parsed_sql_tokens[:table_name])
+        timestamp_columns = []
+        table_definition.columns.map do |column|
+          if column.type == :timestamp
+            timestamp_columns << column.name
+          end
+        end
+
+
         parsed_sql_tokens[:columns].map do |column|
-          puts "column: #{column.inspect}"
+          if timestamp_columns.include?(column)
+            puts "timestamp column: #{column}"
+          end
         end
       end
 
