@@ -80,8 +80,7 @@ module ActiveRecord
         timestamp_columns = []
         table_definition.columns.map do |column|
           puts "checking table definition column: #{column.inspect}"
-          puts "column.type: #{column.type.inspect}"
-          puts "timestamp column type is #{Cassandra::Column::TIMESTAMP}"
+          puts "column.type: #{column.type.to_s}"
           if column.type.to_s == "timestamp"
             timestamp_columns << column.name
           end
