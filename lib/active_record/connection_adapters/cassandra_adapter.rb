@@ -9,6 +9,10 @@ require 'securerandom'
 
 module ActiveRecord
   class Base
+    def initialize(params={})
+      super(params)
+    end
+
     def self.cassandra_connection(config)
       # config.symbolize_keys!
       host = config[:host] || '127.0.1.1'
@@ -34,7 +38,7 @@ module ActiveRecord
   module ConnectionAdapters
     class CassandraAdapter < AbstractAdapter
       def initialize(client, logger, config, cluster)
-        super(client, logger, config, cluster)
+        #super(client, logger, config, cluster)
         @cluster = cluster
         @config = config
         @connection = client
