@@ -75,7 +75,7 @@ module ActiveRecord
       end
 
       def fix_timestamp_format(parsed_sql_tokens, binds)
-        values = parsed_sql_tokens[:values]
+        values = parsed_sql_tokens[:values] || []
         bind_values = binds.map { |bind| bind.value_before_type_cast }
         values.each_with_index do |value, index|
           # fix error: Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 16:25:13.403772': marshaling error: Milliseconds length exceeds expected (6))
