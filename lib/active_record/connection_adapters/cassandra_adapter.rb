@@ -98,6 +98,7 @@ module ActiveRecord
       end
 
       def typecast_bind(bind)
+        puts "typecast_bind"
         puts "bind: #{bind.inspect}"
         # Use the type object to cast the value to the appropriate CQL type
         bind.type.serialize(bind.value_before_type_cast)
