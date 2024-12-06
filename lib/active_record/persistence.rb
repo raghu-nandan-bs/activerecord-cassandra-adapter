@@ -373,6 +373,8 @@ module ActiveRecord
         end
         puts "im [activerecord/persistence.rb:374]"
         puts "_insert_record: values: #{values}"
+        puts "primary_key: #{primary_key}"
+        puts "primary_key_value: #{primary_key_value}"
         connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
       end
 
