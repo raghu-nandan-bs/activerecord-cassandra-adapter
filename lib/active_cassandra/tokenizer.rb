@@ -138,6 +138,7 @@ module SqlToCqlParser
       # it's an invalid number format
       if current_char && current_char =~ /[A-Za-z_]/
         @position = start_pos  # Reset position
+        puts "invalid number format"
         return ''  # Return empty string
       end
 
