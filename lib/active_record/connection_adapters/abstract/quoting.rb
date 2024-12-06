@@ -243,7 +243,7 @@ module ActiveRecord
 
         def _type_cast(value)
           case value
-          when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data, Cassandra::TimeUuid
+          when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
             value.to_s
           when true       then unquoted_true
           when false      then unquoted_false
@@ -252,7 +252,7 @@ module ActiveRecord
           when nil, Numeric, String then value
           when Type::Time::Value then quoted_time(value)
           when Date, Time then quoted_date(value)
-
+          when Cassandra::TimeUuid then value.to_s
           else raise TypeError, "can't cast #{value.class.name}"
           end
         end
