@@ -58,14 +58,22 @@ module ActiveRecord
         table_definition.partition_key
       end
 
-      def should_inject_primary_key?(table_definition, bind_options)
+      def should_inject_primary_key?(table_definition, columns)
         if table_definition.partition_key.length == 1 &&
           table_definition.partition_key.first.name == "id" &&
           table_definition.partition_key.first.type == :uuid &&
-          bind_options.contains_key?(:id)
+          columns.include?("id")
           return false
         end
         true
+      end
+
+      def inject_primary_key(table_definition, parsed_sql_tokens)
+        uuid = SecureRandom.uuid
+        parsed_sql_tokens[:columns] << "id"
+        parsed_sql_tokens[:values] << "uuid()"
+        parsed_sql_tokens[:values] << uuid
+        parsed_sql_tokens
       end
 
       def should_inject_allow_filtering?(table_definition, query_columns)
@@ -115,25 +123,20 @@ module ActiveRecord
         parsed_sql_tokens = parsed_sql[:tokens]
         parsed_sql_cql = parsed_sql[:cql]
         puts "parsed_sql_cql: #{parsed_sql_cql}"
+
+        table_definition = get_table_definition(parsed_sql_tokens[:table_name])
+        if parsed_sql_tokens[:type] == "INSERT" && should_inject_primary_key?(table_definition, parsed_sql_tokens[:columns])
+          parsed_sql_tokens = inject_primary_key(table_definition, parsed_sql_tokens)
+          parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
+        end
+
+        if parsed_sql_tokens[:type] == "SELECT" && should_inject_allow_filtering?(table_definition, parsed_sql_tokens[:columns])
+          parsed_sql_cql = parsed_sql_cql.gsub(";", "")
+          parsed_sql_cql << " ALLOW FILTERING;"
+        end
+
         if binds.any?
-          table_definition = get_table_definition(parsed_sql_tokens[:table_name])
-
           binds = binds.map { |bind| typecast_bind(bind) }
-
-          if parsed_sql_tokens[:type] == "INSERT" && should_inject_primary_key?(table_definition, binds)
-            uuid = SecureRandom.uuid
-            parsed_sql_tokens[:columns] << "id"
-            parsed_sql_tokens[:values] << "uuid()"
-            # binds << uuid
-
-            parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
-          end
-
-          if should_inject_allow_filtering?(table_definition, parsed_sql_tokens[:columns])
-            parsed_sql_cql = parsed_sql_cql.gsub(";", "")
-            parsed_sql_cql << " ALLOW FILTERING;"
-          end
-
           puts "binds: #{binds.inspect}"
           puts "parsed_sql_cql: #{parsed_sql_cql}"
           rows = @connection.execute(parsed_sql_cql, arguments: binds)
