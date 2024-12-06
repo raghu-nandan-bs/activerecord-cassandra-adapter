@@ -75,23 +75,15 @@ module ActiveRecord
       end
 
       def fix_timestamp_format(parsed_sql_tokens, binds)
-        puts "fix_timestamp_format"
-        table_definition = get_table_definition(parsed_sql_tokens[:table_name])
-        timestamp_columns = []
-        table_definition.columns.map do |column|
-          puts "checking table definition column: #{column.inspect}"
-          puts "column.type: #{column.type.to_s}"
-          if column.type.to_s == "timestamp"
-            timestamp_columns << column.name
+        values = parsed_sql_tokens[:values]
+        bind_values = binds.map { |bind| bind.value_before_type_cast }
+        values.each_with_index do |value, index|
+          # fix error: Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 16:25:13.403772': marshaling error: Milliseconds length exceeds expected (6))
+          if value.is_a?(String) && value =~ /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}$/
+            # Trim milliseconds to 3 digits
+            base, milliseconds = value.split('.')
+            parsed_sql_tokens[:values][index] = "#{base}.#{milliseconds[0..2]}"
           end
-        end
-
-        puts "timestamp_columns: #{timestamp_columns.inspect}"
-        parsed_sql_tokens[:columns].map do |column|
-          if timestamp_columns.include?(column)
-            puts "timestamp column: #{column}"
-          end
-        end
       end
 
       def should_inject_allow_filtering?(table_definition, query_columns)
