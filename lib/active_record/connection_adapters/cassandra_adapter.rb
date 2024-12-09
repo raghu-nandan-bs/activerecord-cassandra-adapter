@@ -65,6 +65,7 @@ module ActiveRecord
           conn.close if conn.respond_to?(:close)
         end
       end
+    end
 
     module QueryCache
       def clear_query_cache
