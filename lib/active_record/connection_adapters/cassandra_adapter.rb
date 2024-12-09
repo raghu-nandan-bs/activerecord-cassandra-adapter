@@ -38,7 +38,16 @@ module ActiveRecord
 
   module ConnectionAdapters
 
+    module QueryCache
+      def clear_query_cache
+        # do nothing
+      end
+    end
+
     module DatabaseStatements
+      # SQL TRANSACTIONS are not supported
+      # so in cassandra adapter, we just yield
+      # we will have to later implement using cassandra's Batch statements
       def transaction(options = {})
         yield
       end
