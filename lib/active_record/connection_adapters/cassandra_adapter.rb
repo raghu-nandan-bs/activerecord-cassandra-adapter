@@ -38,8 +38,9 @@ module ActiveRecord
 
   module ConnectionAdapters
 
-    class CassandraConnectionPool < ConnectionPool
+    class CassandraConnectionPool < ActiveRecord::ConnectionAdapters::ConnectionPool
       def disconnect(raise_on_acqusition_timeout = true)
+        puts "disconnecting from cassandra.... #{@connection.inspect}"
         @connection.close
       end
     end
