@@ -243,7 +243,11 @@ module ActiveRecord
           columns << row.keys.first
           rows << row.values.first
         end
-        ActiveRecord::Result.new(columns, rows)
+        result = ActiveRecord::Result.new(columns, rows)
+        result.each do |row|
+          puts "???????? row: #{row.inspect}"
+        end
+        result
       end
 
       def current_keyspace
