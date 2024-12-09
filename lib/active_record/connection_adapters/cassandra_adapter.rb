@@ -115,6 +115,8 @@ module ActiveRecord
       end
 
       def should_inject_allow_filtering?(table_definition, query_columns)
+        puts "columns: #{query_columns.inspect}"
+        puts "table_definition: #{table_definition.partition_key.inspect}"
         primary_keys = table_definition.partition_key.map { |key| key.name }
         if (primary_keys - query_columns).any?
           true
