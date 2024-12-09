@@ -53,6 +53,12 @@ module ActiveRecord
       end
     end
 
+    class CassandraConnectionPool < ConnectionPool
+      def disconnect(raise_on_acqusition_timeout = true)
+        @connection.close
+      end
+    end
+
     class CassandraAdapter < AbstractAdapter
       def initialize(client, logger, config, cluster)
         #super(client, logger, config, cluster)
