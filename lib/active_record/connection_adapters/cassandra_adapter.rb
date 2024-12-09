@@ -25,12 +25,14 @@ module ActiveRecord
       #   puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
       # end
 
-
-
       session = cluster.connect(keyspace)
       ConnectionAdapters::CassandraAdapter.new(session, logger, config, cluster)
     end
   end # class Base
+
+  def establish_connection(config)
+    cassandra_connection(config)
+  end
 
   module ConnectionAdapters
     class CassandraAdapter < AbstractAdapter
