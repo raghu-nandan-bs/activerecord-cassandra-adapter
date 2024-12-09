@@ -204,10 +204,15 @@ module SqlToCqlParser
       conditions = []
       while current_token && !(current_token.type == :keyword && %w(LIMIT ORDER).include?(current_token.value.upcase)) && !(current_token.type == :symbol && current_token.value == ';')
         left = expect(:identifier).value.split('.').last
-        if current_token == 'IS'
-          @tokens[@position] = '='
+
+        operator = if current_token.type == :symbol && current_token.value == '='
+          expect(:symbol, '=').value
+        elsif current_token.type == :keyword && current_token.value.upcase == 'IS'
+          expect(:keyword, 'IS')
+          '='
+        else
+          raise "Expected operator '=' or 'IS', got #{current_token.type} #{current_token.value}"
         end
-        operator = expect(:symbol, '=').value # Simplistic: only handling '=' operator
         right = parse_condition_value
         conditions << { left: left, operator: operator, right: right }
         break unless current_token && current_token.type == :keyword && current_token.value.upcase == 'AND'
