@@ -31,6 +31,8 @@ module ActiveRecord
   end # class Base
 
   def establish_connection(config)
+    puts "establishing connection"
+    puts "config: #{config.inspect}"
     cassandra_connection(config)
   end
 
