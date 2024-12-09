@@ -256,44 +256,44 @@ module ActiveRecord
 
 
 
-      # def select(sql, name = nil)
-      #   log(sql, name)
-#
-      #   parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-#
-      #   cf = parsed_sql[:table].to_sym
-      #   cond = parsed_sql[:condition]
-      #   count = parsed_sql[:count]
-      #   # not implemented:
-      #   # distinct = parsed_sql[:distinct]
-      #   sqlopts, casopts = rowopts(parsed_sql)
-#
-      #   if count and cond.empty? and sqlopts.empty?
-      #     [{count => @connection.count_range(cf, casopts)}]
-      #   elsif is_id?(cond)
-      #     ks = [cond].flatten
-      #     @connection.multi_get(cf, ks, casopts).values
-      #   else
-      #     rows = @connection.get_range(cf, casopts).select {|i| i.columns.length > 0 }.map do |key_slice|
-      #       key_slice_to_hash(key_slice)
-      #     end
-      #     rows = [{}] if rows.empty?
-#
-      #     unless cond.empty?
-      #       rows = filter(cond).call(rows)
-      #     end
-#
-      #     if (offset = sqlopts[:offset])
-      #       rows = rows.slice(offset..-1)
-      #     end
-#
-      #     if (limit = sqlopts[:limit])
-      #       rows = rows.slice(0, limit)
-      #     end
-#
-      #     count ? [{count => rows.length}] : rows
-      #   end
-      # end
+       def select(sql, name = nil)
+         log(sql, name)
+
+         parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
+
+         cf = parsed_sql[:table].to_sym
+         cond = parsed_sql[:condition]
+         count = parsed_sql[:count]
+         # not implemented:
+         # distinct = parsed_sql[:distinct]
+         sqlopts, casopts = rowopts(parsed_sql)
+
+         if count and cond.empty? and sqlopts.empty?
+           [{count => @connection.count_range(cf, casopts)}]
+         elsif is_id?(cond)
+           ks = [cond].flatten
+           @connection.multi_get(cf, ks, casopts).values
+         else
+           rows = @connection.get_range(cf, casopts).select {|i| i.columns.length > 0 }.map do |key_slice|
+             key_slice_to_hash(key_slice)
+           end
+           rows = [{}] if rows.empty?
+
+           unless cond.empty?
+             rows = filter(cond).call(rows)
+           end
+
+           if (offset = sqlopts[:offset])
+             rows = rows.slice(offset..-1)
+           end
+
+           if (limit = sqlopts[:limit])
+             rows = rows.slice(0, limit)
+           end
+
+           count ? [{count => rows.length}] : rows
+         end
+       end
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         log(sql, name)
