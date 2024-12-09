@@ -9,6 +9,7 @@ require 'securerandom'
 
 module ActiveRecord
   class Base
+
     def self.cassandra_connection(config)
       # config.symbolize_keys!
       host = config[:host] || '127.0.1.1'
@@ -24,20 +25,26 @@ module ActiveRecord
       #   puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
       # end
 
-
-
       session = cluster.connect(keyspace)
       ConnectionAdapters::CassandraAdapter.new(session, logger, config, cluster)
     end
   end # class Base
 
+  # def establish_connection(config)
+  #   puts "establishing connection"
+  #   puts "config: #{config.inspect}"
+  #   cassandra_connection(config)
+  # end
+
   module ConnectionAdapters
     class CassandraAdapter < AbstractAdapter
       def initialize(client, logger, config, cluster)
-        super(client, logger)
+        #super(client, logger, config, cluster)
+        @visitor = Arel::Visitors::ToSql.new(self)
         @cluster = cluster
         @config = config
         @connection = client
+        @uuidGenerator = Cassandra::Uuid::Generator.new
 
         puts "cluster: #{@cluster.inspect}"
         puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
@@ -56,19 +63,74 @@ module ActiveRecord
         table_definition.partition_key
       end
 
-      def should_inject_primary_key?(table_definition, bind_options)
-        if table_definition.partition_key.length == 1 &&
-          table_definition.partition_key.first.name == "id" &&
-          table_definition.partition_key.first.type == :uuid &&
-          bind_options.contains_key?(:id)
+      def should_inject_primary_key?(table_definition, columns)
+        pk = table_definition.partition_key.first.name
+        if columns.include?(pk)
+          puts "should_inject_primary_key? -> false"
           return false
         end
+        puts "should_inject_primary_key? -> true"
         true
       end
 
-      def should_inject_allow_filtering?(table_definition, query_columns)
-        primary_keys = table_definition.partition_key.map { |key| key.name }
-        if (primary_keys - query_columns).any?
+      def inject_primary_key(table_definition, parsed_sql_tokens)
+        parsed_sql_tokens[:columns] << "id"
+        parsed_sql_tokens[:values] << @uuidGenerator.now
+        parsed_sql_tokens
+      end
+
+      def fix_timestamp_format(parsed_sql_tokens, binds)
+        values = []
+        if parsed_sql_tokens[:type] == "INSERT"
+          values = parsed_sql_tokens[:values]
+        elsif parsed_sql_tokens[:type] == "UPDATE"
+          values = parsed_sql_tokens[:updates].map { |set_clause| set_clause[:value] }
+        end
+
+        values.each_with_index do |value, index|
+
+          evaluated = value.is_a?(String) && value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
+          puts "value: #{value}, matched? #{evaluated}"
+          # fix error: Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 16:25:13.403772': marshaling error: Milliseconds length exceeds expected (6))
+          if value.is_a?(String) && value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
+            # Trim milliseconds to 3 digits
+            # Remove single quotes first
+            value = value[1..-2] if value.start_with?("'") && value.end_with?("'")
+            base, milliseconds = value.split('.')
+
+            values[index] = "'#{base}.#{milliseconds[0..2]}'"
+          end
+        end
+        binds.each_with_index do |bind_value, index|
+          if bind_value.is_a?(String) && bind_value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
+            bind_value = bind_value[1..-2] if bind_value.start_with?("'") && bind_value.end_with?("'")
+            base, milliseconds = bind_value.split('.')
+            binds[index] = "'#{base}.#{milliseconds[0..2]}'"
+          end
+        end
+        if parsed_sql_tokens[:type] == "INSERT"
+          parsed_sql_tokens[:values] = values
+        elsif parsed_sql_tokens[:type] == "UPDATE"
+          parsed_sql_tokens[:updates].each_with_index { |set_clause, index| set_clause[:value] = values[index] }
+        end
+        puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
+        puts "binds: #{binds.inspect}"
+        return [parsed_sql_tokens, binds]
+      end
+
+      def should_inject_allow_filtering?(table_definition, parsed_sql_tokens)
+        if !parsed_sql_tokens[:where]
+          return false
+        end
+        where_keys = parsed_sql_tokens[:where].map { |where_clause| where_clause[:left] }
+        puts "columns: #{where_keys.inspect}"
+        puts "table_definition: #{table_definition.partition_key.inspect}"
+        partition_keys = table_definition.partition_key.map { |key| key.name }
+        puts "======"
+        puts "partition_keys: #{partition_keys.inspect}"
+        puts "where_keys: #{where_keys.inspect}"
+        puts "======"
+        if (partition_keys - where_keys).any?
           true
         else
           false
@@ -96,6 +158,8 @@ module ActiveRecord
       end
 
       def typecast_bind(bind)
+        puts "typecast_bind"
+        puts "bind: #{bind.inspect}"
         # Use the type object to cast the value to the appropriate CQL type
         bind.type.serialize(bind.value_before_type_cast)
       end
@@ -110,26 +174,30 @@ module ActiveRecord
         parsed_sql = SqlToCqlParser.to_cql(sql)
         parsed_sql_tokens = parsed_sql[:tokens]
         parsed_sql_cql = parsed_sql[:cql]
+        puts "parsed_sql_cql: #{parsed_sql_cql}"
+
+        table_definition = get_table_definition(parsed_sql_tokens[:table_name])
+        if parsed_sql_tokens[:type] == "INSERT" && should_inject_primary_key?(table_definition, parsed_sql_tokens[:columns])
+          parsed_sql_tokens = inject_primary_key(table_definition, parsed_sql_tokens)
+        end
+
+        # Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 14:48:14.359762': marshaling error: Milliseconds length exceeds expected (6))
+        parsed_sql_tokens, binds = fix_timestamp_format(parsed_sql_tokens, binds)
+        puts "<<<AFTER TIMESTAMP FIX>>>"
+        puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
+        puts "binds: #{binds.inspect}"
+
+
+        parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
+
+
+        if parsed_sql_tokens[:type] == "SELECT" && should_inject_allow_filtering?(table_definition, parsed_sql_tokens)
+          parsed_sql_cql = parsed_sql_cql.gsub(";", "")
+          parsed_sql_cql << " ALLOW FILTERING;"
+        end
 
         if binds.any?
-          table_definition = get_table_definition(parsed_sql_tokens[:table_name])
-
           binds = binds.map { |bind| typecast_bind(bind) }
-
-          if parsed_sql_tokens[:type] == "INSERT" && should_inject_primary_key?(table_definition, binds)
-            uuid = SecureRandom.uuid
-            parsed_sql_tokens[:columns] << "id"
-            parsed_sql_tokens[:values] << "uuid()"
-            # binds << uuid
-
-            parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
-          end
-
-          if should_inject_allow_filtering?(table_definition, parsed_sql_tokens[:columns])
-            parsed_sql_cql = parsed_sql_cql.gsub(";", "")
-            parsed_sql_cql << " ALLOW FILTERING;"
-          end
-
           puts "binds: #{binds.inspect}"
           puts "parsed_sql_cql: #{parsed_sql_cql}"
           rows = @connection.execute(parsed_sql_cql, arguments: binds)
@@ -141,6 +209,10 @@ module ActiveRecord
 
         convert_to_active_record_result(rows)
       end
+
+      # def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+
+      # end
 
       def convert_to_active_record_result(cassandra_result)
         columns = []
@@ -184,47 +256,44 @@ module ActiveRecord
 
 
 
-      def select(sql, name = nil)
-        log(sql, name)
-
-        parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-
-        cf = parsed_sql[:table].to_sym
-        cond = parsed_sql[:condition]
-        count = parsed_sql[:count]
-        # not implemented:
-        # distinct = parsed_sql[:distinct]
-        sqlopts, casopts = rowopts(parsed_sql)
-
-        if count and cond.empty? and sqlopts.empty?
-          [{count => @connection.count_range(cf, casopts)}]
-        elsif is_id?(cond)
-          ks = [cond].flatten
-          @connection.multi_get(cf, ks, casopts).values
-        else
-          rows = @connection.get_range(cf, casopts).select {|i| i.columns.length > 0 }.map do |key_slice|
-            key_slice_to_hash(key_slice)
-          end
-          rows = [{}] if rows.empty?
-
-          unless cond.empty?
-            rows = filter(cond).call(rows)
-          end
-
-          if (offset = sqlopts[:offset])
-            rows = rows.slice(offset..-1)
-          end
-
-          if (limit = sqlopts[:limit])
-            rows = rows.slice(0, limit)
-          end
-
-          count ? [{count => rows.length}] : rows
-        end
-      end
-
-
-
+      # def select(sql, name = nil)
+      #   log(sql, name)
+#
+      #   parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
+#
+      #   cf = parsed_sql[:table].to_sym
+      #   cond = parsed_sql[:condition]
+      #   count = parsed_sql[:count]
+      #   # not implemented:
+      #   # distinct = parsed_sql[:distinct]
+      #   sqlopts, casopts = rowopts(parsed_sql)
+#
+      #   if count and cond.empty? and sqlopts.empty?
+      #     [{count => @connection.count_range(cf, casopts)}]
+      #   elsif is_id?(cond)
+      #     ks = [cond].flatten
+      #     @connection.multi_get(cf, ks, casopts).values
+      #   else
+      #     rows = @connection.get_range(cf, casopts).select {|i| i.columns.length > 0 }.map do |key_slice|
+      #       key_slice_to_hash(key_slice)
+      #     end
+      #     rows = [{}] if rows.empty?
+#
+      #     unless cond.empty?
+      #       rows = filter(cond).call(rows)
+      #     end
+#
+      #     if (offset = sqlopts[:offset])
+      #       rows = rows.slice(offset..-1)
+      #     end
+#
+      #     if (limit = sqlopts[:limit])
+      #       rows = rows.slice(0, limit)
+      #     end
+#
+      #     count ? [{count => rows.length}] : rows
+      #   end
+      # end
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         log(sql, name)

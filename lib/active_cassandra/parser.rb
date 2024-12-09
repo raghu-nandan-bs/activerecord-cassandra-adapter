@@ -26,6 +26,8 @@ module SqlToCqlParser
         { cql: translate_select(statement), tokens: statement }
       when 'INSERT'
         { cql: translate_insert(statement), tokens: statement }
+      when 'UPDATE'
+        { cql: translate_update(statement), tokens: statement }
       else
         raise "Unsupported statement type: #{statement[:type]}"
       end
@@ -202,7 +204,15 @@ module SqlToCqlParser
       conditions = []
       while current_token && !(current_token.type == :keyword && %w(LIMIT ORDER).include?(current_token.value.upcase)) && !(current_token.type == :symbol && current_token.value == ';')
         left = expect(:identifier).value.split('.').last
-        operator = expect(:symbol, '=').value # Simplistic: only handling '=' operator
+
+        operator = if current_token.type == :symbol && current_token.value == '='
+          expect(:symbol, '=').value
+        elsif current_token.type == :identifier && current_token.value.upcase == 'IS'
+          expect(:identifier, 'IS')
+          '='
+        else
+          raise "Expected operator '=' or 'IS', got #{current_token.type} #{current_token.value}"
+        end
         right = parse_condition_value
         conditions << { left: left, operator: operator, right: right }
         break unless current_token && current_token.type == :keyword && current_token.value.upcase == 'AND'
@@ -336,6 +346,9 @@ module SqlToCqlParser
       values = []
       while current_token && current_token.type != :symbol || current_token.value != ')'
         values << parse_condition_value
+        puts "running: `parse_insert`"
+        puts "current_token: #{current_token.inspect}"
+        puts "values so far: #{values.inspect}"
         if current_token && current_token.type == :symbol && current_token.value == ','
           expect(:symbol, ',')
         else
@@ -355,8 +368,40 @@ module SqlToCqlParser
     end
 
     def parse_update
-      # Implement UPDATE parsing if needed
-      raise "UPDATE parsing not implemented yet."
+      expect(:keyword, 'UPDATE')
+      table_name = expect(:identifier).value
+
+      expect(:keyword, 'SET')
+
+      # Parse SET clause
+      updates = []
+      while current_token && !(current_token.type == :keyword && current_token.value.upcase == 'WHERE')
+        column = expect(:identifier).value
+        expect(:symbol, '=')
+        value = parse_condition_value
+        updates << { column: column, value: value }
+
+        if current_token && current_token.type == :symbol && current_token.value == ','
+          expect(:symbol, ',')
+        else
+          break
+        end
+      end
+
+      # Parse WHERE clause
+      where_clause = nil
+      if current_token&.type == :keyword && current_token.value.upcase == 'WHERE'
+        where_clause = parse_where
+      end
+
+      expect(:symbol, ';') if current_token && current_token.value == ';'
+
+      {
+        type: 'UPDATE',
+        table_name: table_name,
+        updates: updates,
+        where: where_clause
+      }
     end
 
     def parse_delete
@@ -409,6 +454,18 @@ module SqlToCqlParser
       columns = statement[:columns]
       values = statement[:values]
       cql = "INSERT INTO #{table_name} (#{columns.join(', ')}) VALUES (#{values.join(', ')})"
+      cql
+    end
+
+    def translate_update(statement)
+      table_name = statement[:table_name]
+      updates = statement[:updates].map { |update| "#{update[:column]} = #{update[:value]}" }
+      where_clause = statement[:where]
+
+      cql = "UPDATE #{quote_ident(table_name)}"
+      cql += " SET #{updates.join(', ')}"
+      cql += " WHERE #{where_clause.map { |cond| "#{cond[:left]} = #{cond[:right]}" }.join(' AND ')}" if where_clause
+      cql += ";"
       cql
     end
 

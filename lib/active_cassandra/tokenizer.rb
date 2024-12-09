@@ -15,7 +15,7 @@ module SqlToCqlParser
 
   class Tokenizer
     KEYWORDS = %w[
-      CREATE TABLE ALTER DROP SELECT INSERT INTO VALUES
+      CREATE TABLE ALTER DROP SELECT INSERT INTO VALUES SET
        UPDATE DELETE PRIMARY KEY USING WITH FROM WHERE LIMIT ORDER BY AND OR
       IF EXISTS
     ].freeze
@@ -30,6 +30,7 @@ module SqlToCqlParser
 
     def tokenize
       while current_char
+        puts "position: #{@position}"
         puts "current_char: #{current_char}\n"
         if whitespace?(current_char)
           advance
@@ -41,7 +42,13 @@ module SqlToCqlParser
         elsif string_start?
           @tokens << Token.new(:literal, parse_string)
         elsif digit?(current_char)
-          @tokens << Token.new(:number, parse_number)
+          number = parse_number
+          if number
+            @tokens << Token.new(:number, number)
+          else
+            word = parse_word
+            @tokens << Token.new(:identifier, word)
+          end
         else
           word = parse_word
           if KEYWORDS.include?(word.upcase)
@@ -74,14 +81,26 @@ module SqlToCqlParser
     end
 
     def comment_start?
-      current_char == '-' && peek_char == '-'
+      current_char == '/' && peek_char == '*'
     end
 
     def skip_comment
-      while current_char && current_char != "\n"
+      # Advance past the opening /*
+      advance
+      advance
+
+      # Continue until we find the closing */
+      while current_char && !(current_char == '*' && peek_char == '/')
+        puts "[advancing] skipping comment..."
+        puts "current_char: #{current_char}"
+        puts "peek_char: #{peek_char}"
+        puts "position: #{@position}"
         advance
       end
-      advance # Skip the newline character
+
+      # Advance past the closing */
+      advance if current_char
+      advance if current_char
     end
 
     def symbol?(char)
@@ -116,12 +135,21 @@ module SqlToCqlParser
       while current_char && digit?(current_char)
         advance
       end
+
+      # If the number is immediately followed by a letter or underscore,
+      # it's an invalid number format
+      if current_char && current_char =~ /[A-Za-z_]/
+        @position = start_pos
+        puts "invalid number format"
+        return nil
+      end
+
       @input[start_pos...@position]
     end
 
     def parse_word
       start_pos = @position
-      while current_char && (current_char =~ /[A-Za-z0-9_\.\*]/)
+      while current_char && (current_char =~ /[A-Za-z0-9_\.\*\-]/)
         advance
       end
       word = @input[start_pos...@position]
