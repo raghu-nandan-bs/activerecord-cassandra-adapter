@@ -244,9 +244,7 @@ module ActiveRecord
           rows << row.values.first
         end
         result = ActiveRecord::Result.new(columns, rows)
-        result.each do |row|
-          puts "???????? row: #{row.inspect}"
-        end
+        puts "???? result: #{result.inspect}"
         result
       end
 
