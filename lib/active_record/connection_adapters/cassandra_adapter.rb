@@ -38,6 +38,12 @@ module ActiveRecord
 
   module ConnectionAdapters
 
+    class CassandraConnectionPool < ConnectionPool
+      def disconnect(raise_on_acqusition_timeout = true)
+        @connection.close
+      end
+    end
+
     module QueryCache
       def clear_query_cache
         # do nothing
