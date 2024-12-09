@@ -38,34 +38,6 @@ module ActiveRecord
 
   module ConnectionAdapters
 
-    class CassandraConnectionPool < ActiveRecord::ConnectionAdapters::ConnectionPool
-      def disconnect(raise_on_acquisition_timeout = true)  # Note: fixed typo in 'acquisition'
-        puts "disconnecting from cassandra.... #{@connections.inspect}"
-        super
-        puts "after super"
-        @connections.each do |conn|
-          conn.close if conn.respond_to?(:close)
-        end
-      end
-
-      def disconnect!
-        puts "disconnecting from cassandra.... #{@connections.inspect}"
-        super
-        puts "after super"
-        @connections.each do |conn|
-          conn.close if conn.respond_to?(:close)
-        end
-      end
-
-      def clear_all_connections!
-        puts "clear_all_connections! #{@connections.inspect}"
-        super
-        puts "after super"
-        @connections.each do |conn|
-          conn.close if conn.respond_to?(:close)
-        end
-      end
-    end
 
     module QueryCache
       def clear_query_cache
@@ -83,6 +55,11 @@ module ActiveRecord
     end
 
     class CassandraAdapter < AbstractAdapter
+
+      def disconnect!
+        puts "???? disconnecting!! from cassandra.... #{@connection.inspect}"
+        @connection.close
+      end
 
       def self.pool_class
         CassandraConnectionPool
