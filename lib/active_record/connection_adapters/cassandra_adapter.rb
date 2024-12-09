@@ -75,7 +75,12 @@ module ActiveRecord
 
       def disconnect(raise_on_acqusition_timeout = true)
         puts "{{{{{ disconnecting from cassandra.... }}}}}"
+      end
 
+
+      def disconnect!
+        puts "disconnecting!! from cassandra.... #{@connection.inspect}"
+        @connection.close
       end
 
       def close
