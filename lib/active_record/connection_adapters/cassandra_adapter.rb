@@ -37,6 +37,13 @@ module ActiveRecord
   # end
 
   module ConnectionAdapters
+
+    module DatabaseStatements
+      def transaction(options = {})
+        yield
+      end
+    end
+
     class CassandraAdapter < AbstractAdapter
       def initialize(client, logger, config, cluster)
         #super(client, logger, config, cluster)
@@ -797,4 +804,5 @@ module ActiveRecord
 
     end # class CassandraAdapter
   end # module ConnectionAdapters
+
 end # module ActiveRecord
