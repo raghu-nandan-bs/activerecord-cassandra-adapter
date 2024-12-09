@@ -257,7 +257,10 @@ module ActiveRecord
 
 
        def select(sql, name = nil, binds=[])
-        log(sql, name, binds)
+        #log(sql, name, binds)
+        puts "Running select query: #{sql}"
+        puts "name: #{name}"
+        puts "binds: #{binds.inspect}"
         exec_query(sql, name, binds)
         #  parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         #  cf = parsed_sql[:table].to_sym
