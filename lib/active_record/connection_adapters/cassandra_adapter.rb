@@ -121,7 +121,11 @@ module ActiveRecord
         where_keys = parsed_sql_tokens[:where].map { |where_clause| where_clause[:left] }
         puts "columns: #{where_keys.inspect}"
         puts "table_definition: #{table_definition.partition_key.inspect}"
-        partition_keys = table_definition.partition_key.map { |key| key.name }
+        partition_keys = table_definition.partition_key.map { |key| key[:name] }
+        puts "======"
+        puts "partition_keys: #{partition_keys.inspect}"
+        puts "where_keys: #{where_keys.inspect}"
+        puts "======"
         if (partition_keys - where_keys).any?
           true
         else
