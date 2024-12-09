@@ -66,6 +66,11 @@ module ActiveRecord
     end
 
     class CassandraAdapter < AbstractAdapter
+
+      def self.pool_class
+        CassandraConnectionPool
+      end
+
       def initialize(client, logger, config, cluster)
         #super(client, logger, config, cluster)
         @visitor = Arel::Visitors::ToSql.new(self)
@@ -77,17 +82,6 @@ module ActiveRecord
         puts "cluster: #{@cluster.inspect}"
         puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
       end
-
-      def disconnect(raise_on_acqusition_timeout = true)
-        puts "{{{{{ disconnecting from cassandra.... }}}}}"
-      end
-
-
-      def disconnect!
-        puts "disconnecting!! from cassandra.... #{@connection.inspect}"
-        @connection.close
-      end
-
       def close
         puts "closing cassandra connection.... #{@connection.inspect}"
         @connection.close
