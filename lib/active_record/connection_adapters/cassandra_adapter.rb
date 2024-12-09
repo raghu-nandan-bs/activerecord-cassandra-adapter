@@ -114,11 +114,12 @@ module ActiveRecord
         return [parsed_sql_tokens, binds]
       end
 
-      def should_inject_allow_filtering?(table_definition, query_columns)
+      def should_inject_allow_filtering?(table_definition, parsed_sql_tokens)
+        where_keys = parsed_sql_tokens[:where].map { |where_clause| where_clause[:left] }
         puts "columns: #{query_columns.inspect}"
         puts "table_definition: #{table_definition.partition_key.inspect}"
-        primary_keys = table_definition.partition_key.map { |key| key.name }
-        if (primary_keys - query_columns).any?
+        partition_keys = table_definition.partition_key.map { |key| key.name }
+        if (partition_keys - where_keys).any?
           true
         else
           false
@@ -169,7 +170,7 @@ module ActiveRecord
           parsed_sql_tokens = inject_primary_key(table_definition, parsed_sql_tokens)
         end
 
-        if parsed_sql_tokens[:type] == "SELECT" && should_inject_allow_filtering?(table_definition, parsed_sql_tokens[:columns])
+        if parsed_sql_tokens[:type] == "SELECT" && should_inject_allow_filtering?(table_definition, parsed_sql_tokens)
           parsed_sql_cql = parsed_sql_cql.gsub(";", "")
           parsed_sql_cql << " ALLOW FILTERING;"
         end
