@@ -79,6 +79,11 @@ module ActiveRecord
         puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
       end
 
+      def close
+        puts "closing cassandra connection.... #{@connection.inspect}"
+        @connection.close
+      end
+
       def get_table_definition( t)
         ks = get_keyspace(t)
         t = get_table_name(t)
