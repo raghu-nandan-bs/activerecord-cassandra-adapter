@@ -43,6 +43,11 @@ module ActiveRecord
         puts "disconnecting from cassandra.... #{@connection.inspect}"
         @connection.close
       end
+
+      def disconnect!
+        puts "disconnecting!! from cassandra.... #{@connection.inspect}"
+        @connection.close
+      end
     end
 
     module QueryCache
