@@ -115,6 +115,9 @@ module ActiveRecord
       end
 
       def should_inject_allow_filtering?(table_definition, parsed_sql_tokens)
+        if !parsed_sql_tokens[:where]
+          return false
+        end
         where_keys = parsed_sql_tokens[:where].map { |where_clause| where_clause[:left] }
         puts "columns: #{where_keys.inspect}"
         puts "table_definition: #{table_definition.partition_key.inspect}"
