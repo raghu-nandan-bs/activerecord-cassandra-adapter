@@ -207,7 +207,7 @@ module SqlToCqlParser
 
         operator = if current_token.type == :symbol && current_token.value == '='
           expect(:symbol, '=').value
-        elsif current_token.type == :keyword && current_token.value.upcase == 'IS'
+        elsif current_token.type == :identifier && current_token.value.upcase == 'IS'
           expect(:identifier, 'IS')
           '='
         else
