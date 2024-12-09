@@ -648,10 +648,14 @@ module ActiveRecord
     def update!(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
-      with_transaction_returning_status do
-        assign_attributes(attributes)
-        save!
-      end
+      #with_transaction_returning_status do
+      puts "assigning attributes"
+      puts "--------------------------------"
+      puts attributes
+      puts "--------------------------------"
+      assign_attributes(attributes)
+      save!
+      #end
     end
 
     # Equivalent to <code>update_columns(name => value)</code>.
