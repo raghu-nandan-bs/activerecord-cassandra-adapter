@@ -304,7 +304,8 @@ module ActiveRecord
     end
 
     def save!(**) #:nodoc:
-      with_transaction_returning_status { super }
+      # with_transaction_returning_status { super }
+      super
     end
 
     def touch(*, **) #:nodoc:
