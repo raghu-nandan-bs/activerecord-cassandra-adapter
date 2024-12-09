@@ -60,12 +60,6 @@ module ActiveRecord
       end
     end
 
-    class CassandraConnectionPool < ConnectionPool
-      def disconnect(raise_on_acqusition_timeout = true)
-        @connection.close
-      end
-    end
-
     class CassandraAdapter < AbstractAdapter
       def initialize(client, logger, config, cluster)
         #super(client, logger, config, cluster)
@@ -77,6 +71,11 @@ module ActiveRecord
 
         puts "cluster: #{@cluster.inspect}"
         puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
+      end
+
+      def disconnect(raise_on_acqusition_timeout = true)
+        puts "{{{{{ disconnecting from cassandra.... }}}}}"
+
       end
 
       def close
