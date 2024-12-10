@@ -45,6 +45,10 @@ module ActiveRecord
         # Your custom logic before disconnect
         puts ">>>>... disconnecting..."
       end
+      def disconnect!(raise_on_acquisition_timeout = true)
+        # Your custom logic before disconnect
+        puts ">>>>... disconnecting..."
+      end
     end
 
     module QueryCache
