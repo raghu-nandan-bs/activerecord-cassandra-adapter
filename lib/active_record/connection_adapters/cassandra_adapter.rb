@@ -42,12 +42,19 @@ module ActiveRecord
 
     module CustomConnectionPoolPatch
         def disconnect(raise_on_acquisition_timeout = true)
-          puts "#{self.class.name} disconnect for #{connection_klass}"
-          puts "connection_klass: #{connection_klass.inspect}"
-          puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
-          puts "connections: #{@connections.inspect}"
-          puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
-          super(raise_on_acquisition_timeout)
+          if pool_config[:adapter] == "cassandra"
+            puts "#{self.class.name} disconnect for #{connection_klass}"
+            puts "connection_klass: #{connection_klass.inspect}"
+            puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
+            puts "connections: #{@connections.inspect}"
+            puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
+            @connections.each do |conn|
+              puts ">>>> DISCONNECTING: #{conn.inspect}"
+              conn.close
+            end
+          else
+            super(raise_on_acquisition_timeout)
+          end
         end
     end
 
