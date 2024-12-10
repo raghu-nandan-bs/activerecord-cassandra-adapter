@@ -40,21 +40,18 @@ module ActiveRecord
   module ConnectionAdapters
 
 
-    class ConnectionPool
-      class << self
-        #alias_method :original_disconnect, :disconnect
+    module CustomConnectionPoolPatch
         def disconnect(raise_on_acquisition_timeout = true)
           puts "#{self.class.name} disconnect for #{connection_klass}"
           puts "connection_klass: #{connection_klass.inspect}"
           puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
           puts "connections: #{@connections.inspect}"
           puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
-
-          #original_disconnect(raise_on_acquisition_timeout)
-          super
+          super(raise_on_acquisition_timeout)
         end
-      end
     end
+
+    ActiveRecord::ConnectionAdapters::ConnectionPool.prepend(CustomConnectionPoolPatch)
 
     module QueryCache
       def clear_query_cache
@@ -80,6 +77,8 @@ module ActiveRecord
         @config = config
         @connection = client
         @uuidGenerator = Cassandra::Uuid::Generator.new
+
+
 
         puts "cluster: #{@cluster.inspect}"
         puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
