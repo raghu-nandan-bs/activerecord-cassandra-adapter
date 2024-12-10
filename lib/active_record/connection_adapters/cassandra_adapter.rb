@@ -42,7 +42,7 @@ module ActiveRecord
 
     class ConnectionPool
       class << self
-        alias_method :original_disconnect, :disconnect
+        #alias_method :original_disconnect, :disconnect
         def disconnect(raise_on_acquisition_timeout = true)
           puts "#{self.class.name} disconnect for #{connection_klass}"
           puts "connection_klass: #{connection_klass.inspect}"
@@ -50,7 +50,8 @@ module ActiveRecord
           puts "connections: #{@connections.inspect}"
           puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
 
-          original_disconnect(raise_on_acquisition_timeout)
+          #original_disconnect(raise_on_acquisition_timeout)
+          super
         end
       end
     end
