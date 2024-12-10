@@ -61,20 +61,20 @@ module ActiveRecord
 
     ActiveRecord::ConnectionAdapters::ConnectionPool.prepend(CustomConnectionPoolPatch)
 
-    module QueryCache
-      def clear_query_cache
-        # do nothing
-      end
-    end
+    # module QueryCache
+    #   def clear_query_cache
+    #     # do nothing
+    #   end
+    # end
 
-    module DatabaseStatements
-      # SQL TRANSACTIONS are not supported
-      # so in cassandra adapter, we just yield
-      # we will have to later implement using cassandra's Batch statements
-      def transaction(options = {})
-        yield
-      end
-    end
+    # module DatabaseStatements
+    #   # SQL TRANSACTIONS are not supported
+    #   # so in cassandra adapter, we just yield
+    #   # we will have to later implement using cassandra's Batch statements
+    #   def transaction(options = {})
+    #     yield
+    #   end
+    # end
 
     class Cassandra::Uuid
       # Convert UUID to string without hyphens
@@ -85,6 +85,14 @@ module ActiveRecord
     end
 
     class CassandraAdapter < AbstractAdapter
+
+      def transaction(options = {})
+        yield
+      end
+
+      def clear_query_cache
+        # do nothing
+      end
 
       def initialize(client, logger, config, cluster)
         #super(client, logger, config, cluster)
