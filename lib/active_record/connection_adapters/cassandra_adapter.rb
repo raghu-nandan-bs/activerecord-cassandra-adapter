@@ -250,6 +250,9 @@ module ActiveRecord
           parsed_sql_cql << " ALLOW FILTERING;"
         end
 
+        puts "parsed_sql_cql: #{parsed_sql_cql}"
+        puts "binds: #{binds.inspect}"
+
         if binds.any?
           binds = binds.map { |bind| typecast_bind(bind) }
           # puts "binds: #{binds.inspect}"
