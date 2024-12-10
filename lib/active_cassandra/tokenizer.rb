@@ -30,8 +30,8 @@ module SqlToCqlParser
 
     def tokenize
       while current_char
-        puts "position: #{@position}"
-        puts "current_char: #{current_char}\n"
+        # puts "position: #{@position}"
+        # puts "current_char: #{current_char}\n"
         if whitespace?(current_char)
           advance
         elsif comment_start?
@@ -57,7 +57,7 @@ module SqlToCqlParser
             @tokens << Token.new(:identifier, word)
           end
         end
-        puts "tokens so far: #{@tokens.inspect}"
+        # puts "tokens so far: #{@tokens.inspect}"
       end
       @tokens
     end
@@ -91,10 +91,10 @@ module SqlToCqlParser
 
       # Continue until we find the closing */
       while current_char && !(current_char == '*' && peek_char == '/')
-        puts "[advancing] skipping comment..."
-        puts "current_char: #{current_char}"
-        puts "peek_char: #{peek_char}"
-        puts "position: #{@position}"
+        # puts "[advancing] skipping comment..."
+        # puts "current_char: #{current_char}"
+        # puts "peek_char: #{peek_char}"
+        # puts "position: #{@position}"
         advance
       end
 
@@ -140,7 +140,7 @@ module SqlToCqlParser
       # it's an invalid number format
       if current_char && current_char =~ /[A-Za-z_]/
         @position = start_pos
-        puts "invalid number format"
+        # puts "invalid number format"
         return nil
       end
 

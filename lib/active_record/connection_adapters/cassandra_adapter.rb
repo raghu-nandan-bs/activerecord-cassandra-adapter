@@ -23,7 +23,7 @@ module ActiveRecord
         hosts:  ["#{host}"]
       )
       # client.each_host do |host| # automatically discovers all peers
-      #   puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
+      #   # puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
       # end
 
       session = cluster.connect(keyspace)
@@ -32,8 +32,8 @@ module ActiveRecord
   end # class Base
 
   # def establish_connection(config)
-  #   puts "establishing connection"
-  #   puts "config: #{config.inspect}"
+  #   # puts "establishing connection"
+  #   # puts "config: #{config.inspect}"
   #   cassandra_connection(config)
   # end
 
@@ -42,15 +42,15 @@ module ActiveRecord
 
     module CustomConnectionPoolPatch
         def disconnect(raise_on_acquisition_timeout = true)
-          puts "db_config: #{@db_config.inspect}"
+          # puts "db_config: #{@db_config.inspect}"
           if @db_config.configuration_hash[:adapter] == "cassandra"
-            puts "#{self.class.name} disconnect for #{connection_klass}"
-            puts "connection_klass: #{connection_klass.inspect}"
-            puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
-            puts "connections: #{@connections.inspect}"
-            puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
+            # puts "#{self.class.name} disconnect for #{connection_klass}"
+            # puts "connection_klass: #{connection_klass.inspect}"
+            # puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
+            # puts "connections: #{@connections.inspect}"
+            # puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
             @connections.each do |conn|
-              puts ">>>> DISCONNECTING: #{conn.inspect}"
+              # puts ">>>> DISCONNECTING: #{conn.inspect}"
               conn.close
             end
           else
@@ -88,16 +88,16 @@ module ActiveRecord
 
 
 
-        puts "cluster: #{@cluster.inspect}"
-        puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
+        # puts "cluster: #{@cluster.inspect}"
+        # puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
       end
 
       def get_table_definition( t)
         ks = get_keyspace(t)
         t = get_table_name(t)
         table = @cluster.keyspace(ks).table(t)
-        puts "table: #{table.inspect}"
-        puts "table.partition_key: #{table.partition_key}"
+        # puts "table: #{table.inspect}"
+        # puts "table.partition_key: #{table.partition_key}"
         table
       end
 
@@ -112,10 +112,10 @@ module ActiveRecord
       def should_inject_primary_key?(table_definition, columns)
         pk = table_definition.partition_key.first.name
         if columns.include?(pk)
-          puts "should_inject_primary_key? -> false"
+          # puts "should_inject_primary_key? -> false"
           return false
         end
-        puts "should_inject_primary_key? -> true"
+        # puts "should_inject_primary_key? -> true"
         true
       end
 
@@ -136,7 +136,7 @@ module ActiveRecord
         values.each_with_index do |value, index|
 
           evaluated = value.is_a?(String) && value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
-          puts "value: #{value}, matched? #{evaluated}"
+          # puts "value: #{value}, matched? #{evaluated}"
           # fix error: Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 16:25:13.403772': marshaling error: Milliseconds length exceeds expected (6))
           if value.is_a?(String) && value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
             # Trim milliseconds to 3 digits
@@ -159,8 +159,8 @@ module ActiveRecord
         elsif parsed_sql_tokens[:type] == "UPDATE"
           parsed_sql_tokens[:updates].each_with_index { |set_clause, index| set_clause[:value] = values[index] }
         end
-        puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
-        puts "binds: #{binds.inspect}"
+        # puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
+        # puts "binds: #{binds.inspect}"
         return [parsed_sql_tokens, binds]
       end
 
@@ -169,13 +169,13 @@ module ActiveRecord
           return false
         end
         where_keys = parsed_sql_tokens[:where].map { |where_clause| where_clause[:left] }
-        puts "columns: #{where_keys.inspect}"
-        puts "table_definition: #{table_definition.partition_key.inspect}"
+        # puts "columns: #{where_keys.inspect}"
+        # puts "table_definition: #{table_definition.partition_key.inspect}"
         partition_keys = table_definition.partition_key.map { |key| key.name }
-        puts "======"
-        puts "partition_keys: #{partition_keys.inspect}"
-        puts "where_keys: #{where_keys.inspect}"
-        puts "======"
+        # puts "======"
+        # puts "partition_keys: #{partition_keys.inspect}"
+        # puts "where_keys: #{where_keys.inspect}"
+        # puts "======"
         if (partition_keys - where_keys).any?
           true
         else
@@ -204,8 +204,8 @@ module ActiveRecord
       end
 
       def typecast_bind(bind)
-        puts "typecast_bind"
-        puts "bind: #{bind.inspect}"
+        # puts "typecast_bind"
+        # puts "bind: #{bind.inspect}"
         # Use the type object to cast the value to the appropriate CQL type
         bind.type.serialize(bind.value_before_type_cast)
       end
@@ -216,11 +216,11 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-        puts "++++++++++ processing sql: #{sql}"
+        # puts "++++++++++ processing sql: #{sql}"
         parsed_sql = SqlToCqlParser.to_cql(sql)
         parsed_sql_tokens = parsed_sql[:tokens]
         parsed_sql_cql = parsed_sql[:cql]
-        puts "parsed_sql_cql: #{parsed_sql_cql}"
+        # puts "parsed_sql_cql: #{parsed_sql_cql}"
 
         table_definition = get_table_definition(parsed_sql_tokens[:table_name])
         if parsed_sql_tokens[:type] == "INSERT" && should_inject_primary_key?(table_definition, parsed_sql_tokens[:columns])
@@ -229,9 +229,9 @@ module ActiveRecord
 
         # Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 14:48:14.359762': marshaling error: Milliseconds length exceeds expected (6))
         parsed_sql_tokens, binds = fix_timestamp_format(parsed_sql_tokens, binds)
-        puts "<<<AFTER TIMESTAMP FIX>>>"
-        puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
-        puts "binds: #{binds.inspect}"
+        # puts "<<<AFTER TIMESTAMP FIX>>>"
+        # puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
+        # puts "binds: #{binds.inspect}"
 
 
         parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
@@ -244,8 +244,8 @@ module ActiveRecord
 
         if binds.any?
           binds = binds.map { |bind| typecast_bind(bind) }
-          puts "binds: #{binds.inspect}"
-          puts "parsed_sql_cql: #{parsed_sql_cql}"
+          # puts "binds: #{binds.inspect}"
+          # puts "parsed_sql_cql: #{parsed_sql_cql}"
           rows = @connection.execute(parsed_sql_cql, arguments: binds)
         else
           rows = @connection.execute(parsed_sql_cql)
@@ -268,7 +268,7 @@ module ActiveRecord
           rows << row.values.first
         end
         result = ActiveRecord::Result.new(columns, rows)
-        puts "???? result: #{result.inspect}"
+        # puts "???? result: #{result.inspect}"
         result
       end
 
@@ -306,9 +306,9 @@ module ActiveRecord
 
        def select(sql, name = nil, binds=[])
         #log(sql, name, binds)
-        puts "Running select query: #{sql}"
-        puts "name: #{name}"
-        puts "binds: #{binds.inspect}"
+        # puts "Running select query: #{sql}"
+        # puts "name: #{name}"
+        # puts "binds: #{binds.inspect}"
         exec_query(sql, name, binds)
         #  parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         #  cf = parsed_sql[:table].to_sym
@@ -646,7 +646,7 @@ module ActiveRecord
         # Initialize column definitions array
         columns_cql = []
 
-        puts "create table -> table_options: #{table_options}"
+        # puts "create table -> table_options: #{table_options}"
 
         # Handle primary key options
         primary_key = options[:primary_key] || 'id'

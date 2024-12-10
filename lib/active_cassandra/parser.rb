@@ -16,7 +16,7 @@ module SqlToCqlParser
     end
 
     def translate_to_cql(statement)
-      puts "translate_to_cql: #{statement.inspect}"
+      # puts "translate_to_cql: #{statement.inspect}"
       case statement[:type]
       when 'CREATE_TABLE'
         { cql: translate_create_table(statement), tokens: statement }
@@ -309,7 +309,7 @@ module SqlToCqlParser
 
       expect(:symbol, ';') if current_token && current_token.value == ';'
 
-      puts "result: #{columns}, #{table_name}, #{where_clause}, #{limit}, #{order_by}"
+      # puts "result: #{columns}, #{table_name}, #{where_clause}, #{limit}, #{order_by}"
 
       {
         type: 'SELECT',
@@ -346,9 +346,9 @@ module SqlToCqlParser
       values = []
       while current_token && current_token.type != :symbol || current_token.value != ')'
         values << parse_condition_value
-        puts "running: `parse_insert`"
-        puts "current_token: #{current_token.inspect}"
-        puts "values so far: #{values.inspect}"
+        # puts "running: `parse_insert`"
+        # puts "current_token: #{current_token.inspect}"
+        # puts "values so far: #{values.inspect}"
         if current_token && current_token.type == :symbol && current_token.value == ','
           expect(:symbol, ',')
         else
@@ -433,7 +433,7 @@ module SqlToCqlParser
     end
 
     def translate_select(statement)
-      puts "translate_select: #{statement.inspect}"
+      # puts "translate_select: #{statement.inspect}"
       columns = statement[:columns]
       table_name = statement[:table_name]
       where_clause = statement[:where]
@@ -449,7 +449,7 @@ module SqlToCqlParser
     end
 
     def translate_insert(statement)
-      puts "translate_insert: #{statement.inspect}"
+      # puts "translate_insert: #{statement.inspect}"
       table_name = statement[:table_name]
       columns = statement[:columns]
       values = statement[:values]
