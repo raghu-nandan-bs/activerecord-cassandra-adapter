@@ -39,6 +39,13 @@ module ActiveRecord
   module ConnectionAdapters
 
 
+    class ConnectionPool
+      def disconnect(raise_on_errors: false)
+        # Your custom logic before disconnect
+        puts ">>>>... disconnecting..."
+      end
+    end
+
     module QueryCache
       def clear_query_cache
         # do nothing
