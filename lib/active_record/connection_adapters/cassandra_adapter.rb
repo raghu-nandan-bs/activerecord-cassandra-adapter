@@ -41,14 +41,17 @@ module ActiveRecord
 
 
     class ConnectionPool
-      def disconnect(raise_on_acquisition_timeout = true)
-        puts "#{self.class.name} disconnect for #{connection_klass}"
-        puts "connection_klass: #{connection_klass.inspect}"
-        puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
-        puts "connections: #{@connections.inspect}"
-        puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
+      class << self
+        alias_method :original_disconnect, :disconnect
+        def disconnect(raise_on_acquisition_timeout = true)
+          puts "#{self.class.name} disconnect for #{connection_klass}"
+          puts "connection_klass: #{connection_klass.inspect}"
+          puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
+          puts "connections: #{@connections.inspect}"
+          puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
 
-        super
+          original_disconnect(raise_on_acquisition_timeout)
+        end
       end
     end
 
