@@ -40,7 +40,7 @@ module ActiveRecord
 
 
     class ConnectionPool
-      def disconnect(raise_on_errors: false)
+      def disconnect(raise_on_acquisition_timeout = true)
         # Your custom logic before disconnect
         puts ">>>>... disconnecting..."
       end
