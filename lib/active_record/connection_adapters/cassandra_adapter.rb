@@ -42,7 +42,8 @@ module ActiveRecord
 
     module CustomConnectionPoolPatch
         def disconnect(raise_on_acquisition_timeout = true)
-          if pool_config.configuration_hash[:adapter] == "cassandra"
+
+          if @pool_config.configuration_hash[:adapter] == "cassandra"
             puts "#{self.class.name} disconnect for #{connection_klass}"
             puts "connection_klass: #{connection_klass.inspect}"
             puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
