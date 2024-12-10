@@ -1,5 +1,6 @@
-require 'active_record/base'
+
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/abstract/connection_pool'
 require 'cassandra'
 require 'active_cassandra/cf'
 require 'active_cassandra/sqlparser.tab'
@@ -39,12 +40,12 @@ module ActiveRecord
   module ConnectionAdapters
 
 
-    # class ConnectionPool
-    #   def disconnect(raise_on_acquisition_timeout = true)
-    #     # Your custom logic before disconnect
-    #     puts ">>>>... disconnecting..."
-    #   end
-    # end
+    class CassandraConnectionPool < ConnectionPool
+      def disconnect(raise_on_acquisition_timeout = true)
+        # Your custom logic before disconnect
+        puts ">>>>... disconnecting..."
+      end
+    end
 
     module QueryCache
       def clear_query_cache
