@@ -101,6 +101,10 @@ module ActiveRecord
         table
       end
 
+      def close
+        @connection.close
+      end
+
       def get_primary_key(table_definition)
         table_definition.partition_key
       end
