@@ -264,6 +264,7 @@ module ActiveRecord
         columns = []
         rows = []
         cassandra_result.map do |row|
+          puts "########### row: #{row.inspect}"
           columns << row.keys.first
           rows << row.values.first
         end
