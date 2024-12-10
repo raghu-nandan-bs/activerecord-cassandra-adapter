@@ -76,6 +76,13 @@ module ActiveRecord
       end
     end
 
+    class Cassandra::Uuid
+      # Convert UUID to string without hyphens
+      def []
+        [self.to_s]
+      end
+    end
+
     class CassandraAdapter < AbstractAdapter
 
       def initialize(client, logger, config, cluster)
