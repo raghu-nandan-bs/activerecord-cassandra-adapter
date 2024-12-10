@@ -39,12 +39,12 @@ module ActiveRecord
   module ConnectionAdapters
 
 
-    class ConnectionPool
-      def disconnect(raise_on_acquisition_timeout = true)
-        # Your custom logic before disconnect
-        puts ">>>>... disconnecting..."
-      end
-    end
+    # class ConnectionPool
+    #   def disconnect(raise_on_acquisition_timeout = true)
+    #     # Your custom logic before disconnect
+    #     puts ">>>>... disconnecting..."
+    #   end
+    # end
 
     module QueryCache
       def clear_query_cache
@@ -63,9 +63,14 @@ module ActiveRecord
 
     class CassandraAdapter < AbstractAdapter
 
+      def disconnect(raise_on_acquisition_timeout = true)
+        # Your custom logic before disconnect
+        puts ">>>>... disconnecting..."
+      end
+
       def disconnect!
         puts "???? disconnecting!! from cassandra.... #{@connection.inspect}"
-        @connection.close
+        #@connection.close
       end
 
       def self.pool_class
