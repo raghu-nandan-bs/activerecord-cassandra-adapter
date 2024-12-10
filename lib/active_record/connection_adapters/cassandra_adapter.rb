@@ -78,7 +78,8 @@ module ActiveRecord
 
     class Cassandra::Uuid
       # Convert UUID to string without hyphens
-      def []
+      def [index]
+        puts "index: #{index}"
         [self.to_s]
       end
     end
