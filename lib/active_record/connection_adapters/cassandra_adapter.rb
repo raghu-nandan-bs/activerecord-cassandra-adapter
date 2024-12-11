@@ -116,7 +116,7 @@ module ActiveRecord
       end
 
       def transaction_open?
-        puts "checking if transaction is open... (returning false)"
+        puts "checking if transaction is open... (returning true)"
         true
       end
 
@@ -145,6 +145,12 @@ module ActiveRecord
       # ----------------------- Connection related overrides -------------------
       def clear_active_connections!
         puts "clearing active connections..."
+      end
+
+      def checkin(conn)
+        puts "checking in connection..."
+        # signal the process waiting for this operation to complete
+        @cond.signal
       end
       # ----------------------- Connection related overrides -------------------
 
