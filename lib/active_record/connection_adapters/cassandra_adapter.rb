@@ -152,6 +152,11 @@ module ActiveRecord
         # signal the process waiting for this operation to complete
         @cond.signal
       end
+
+      def connection
+        puts "getting connection..."
+        @connection
+      end
       # ----------------------- Connection related overrides -------------------
 
       def _quote(value)
