@@ -117,7 +117,7 @@ module ActiveRecord
 
       def transaction_open?
         puts "checking if transaction is open... (returning false)"
-        false
+        true
       end
 
       def commit_transaction
