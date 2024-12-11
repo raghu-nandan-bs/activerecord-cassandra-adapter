@@ -141,6 +141,13 @@ module ActiveRecord
       end
       # ----------------------- NO op TransactionManager -----------------------
 
+
+      # ----------------------- Connection related overrides -------------------
+      def clear_active_connections!
+        puts "clearing active connections..."
+      end
+      # ----------------------- Connection related overrides -------------------
+
       def _quote(value)
         case value
         when String, Symbol, ActiveSupport::Multibyte::Chars
