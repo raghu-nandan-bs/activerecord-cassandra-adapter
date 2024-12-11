@@ -19,6 +19,9 @@ module ActiveRecord
       unless (keyspace = config[:keyspace] || config[:database])
         raise ArgumentError, "No database file specified. Missing argument: keyspace"
       end
+
+    puts "Cassandra.inspect: #{Cassandra.inspect}"
+
       cluster = Cassandra.cluster(
         hosts:  ["#{host}"]
       )
