@@ -44,6 +44,10 @@ module ActiveRecord
 
   module ConnectionAdapters
 
+    class CassandraTransactionManager < TransactionManager
+
+    end
+
 
     module CustomConnectionPoolPatch
         def disconnect(raise_on_acquisition_timeout = true)
@@ -90,6 +94,47 @@ module ActiveRecord
     end
 
     class CassandraAdapter < AbstractAdapter
+
+      # ----------------------- NO op TransactionManager -----------------------
+      def begin_transaction(isolation: nil, joinable: true, _lazy: true)
+        puts "beginning transaction..."
+      end
+
+      def within_new_transaction
+        puts "within new transaction..."
+        yield
+      end
+
+      def open_transactions
+        puts "checking open transactions..."
+        0
+      end
+
+      def current_transaction
+        puts "getting current transaction..."
+        nil
+      end
+
+      def commit_transaction
+        puts "committing transaction..."
+      end
+
+      def rollback_transaction
+        puts "rolling back transaction..."
+      end
+
+      def materialize_transactions
+        puts "materializing transactions..."
+      end
+
+      def disable_lazy_transactions!
+        puts "disabling lazy transactions..."
+      end
+
+      def enable_lazy_transactions!
+        puts "enabling lazy transactions..."
+      end
+      # ----------------------- NO op TransactionManager -----------------------
 
       def _quote(value)
         case value
