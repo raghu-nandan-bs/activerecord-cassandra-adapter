@@ -115,6 +115,11 @@ module ActiveRecord
         nil
       end
 
+      def transaction_open?
+        puts "checking if transaction is open... (returning false)"
+        false
+      end
+
       def commit_transaction
         puts "committing transaction..."
       end
