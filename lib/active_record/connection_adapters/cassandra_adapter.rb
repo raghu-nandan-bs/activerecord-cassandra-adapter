@@ -20,8 +20,10 @@ module ActiveRecord
         raise ArgumentError, "No database file specified. Missing argument: keyspace"
       end
 
-      puts "Cassandra.inspect: #{Cassandra.class.inspect}"
 
+      puts "Cassandra class: #{Cassandra.class}"
+      puts "Cassandra ancestors: #{Cassandra.ancestors}"
+      puts "Cassandra source location: #{Cassandra.method(:cluster).source_location}"
       cluster = Cassandra.cluster(
         hosts:  ["#{host}"]
       )
