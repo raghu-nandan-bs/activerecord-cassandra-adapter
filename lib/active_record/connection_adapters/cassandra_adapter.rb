@@ -44,44 +44,42 @@ module ActiveRecord
 
   module ConnectionAdapters
 
-
-    module CustomConnectionHandlerPatch
-      def clear_active_connections!(role = ActiveRecord::Base.current_role)
-        puts "self.owner_to_pool_manager.inspect: #{self.owner_to_pool_manager.inspect}"
-        puts "clearing active connections..."
-        super(role)
-      end
-    end
-
-    ActiveRecord::ConnectionAdapters::ConnectionHandler.prepend(CustomConnectionHandlerPatch)
+    # module CustomConnectionHandlerPatch
+    #   def clear_active_connections!(role = ActiveRecord::Base.current_role)
+    #     puts "clearing active connections..."
+    #     super(role)
+    #   end
+    # end
+#
+    # ActiveRecord::ConnectionAdapters::ConnectionHandler.prepend(CustomConnectionHandlerPatch)
 
     module CustomConnectionPoolPatch
 
-        def clear_active_connections!(role = ActiveRecord::Base.current_role)
-          puts "clearing active connections..."
-          if @db_config.configuration_hash[:adapter] == "cassandra"
-            # no-op
-          else
-            super(role)
-          end
+      def release_connection(owner_thread = Thread.current)
+        puts "release_connection"
+        if @db_config.configuration_hash[:adapter] == "cassandra"
+          # no-op
+        else
+          super(owner_thread)
         end
+      end
 
-        def disconnect(raise_on_acquisition_timeout = true)
-          # puts "db_config: #{@db_config.inspect}"
-          if @db_config.configuration_hash[:adapter] == "cassandra"
-            # puts "#{self.class.name} disconnect for #{connection_klass}"
-            # puts "connection_klass: #{connection_klass.inspect}"
-            # puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
-            # puts "connections: #{@connections.inspect}"
-            # puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
-            @connections.each do |conn|
-              # puts ">>>> DISCONNECTING: #{conn.inspect}"
-              conn.close
-            end
-          else
-            super(raise_on_acquisition_timeout)
+      def disconnect(raise_on_acquisition_timeout = true)
+        # puts "db_config: #{@db_config.inspect}"
+        if @db_config.configuration_hash[:adapter] == "cassandra"
+          # puts "#{self.class.name} disconnect for #{connection_klass}"
+          # puts "connection_klass: #{connection_klass.inspect}"
+          # puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
+          # puts "connections: #{@connections.inspect}"
+          # puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
+          @connections.each do |conn|
+            # puts ">>>> DISCONNECTING: #{conn.inspect}"
+            conn.close
           end
+        else
+          super(raise_on_acquisition_timeout)
         end
+      end
     end
 
     ActiveRecord::ConnectionAdapters::ConnectionPool.prepend(CustomConnectionPoolPatch)
