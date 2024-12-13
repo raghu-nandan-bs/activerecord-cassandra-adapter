@@ -45,6 +45,14 @@ module ActiveRecord
   module ConnectionAdapters
 
 
+    module CustomConnectionHandlerPatch
+      def clear_active_connections!(role = ActiveRecord::Base.current_role)
+        puts "self.inspect: #{self.inspect}"
+        puts "clearing active connections..."
+        super(role)
+      end
+    end
+
     module CustomConnectionPoolPatch
 
         def clear_active_connections!(role = ActiveRecord::Base.current_role)
