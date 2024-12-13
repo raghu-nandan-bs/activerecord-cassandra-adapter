@@ -902,6 +902,11 @@ module ActiveRecord
         raise ActiveRecord::StatementInvalid.new(e.message)
       end
 
+      # connection overrides
+      def clear_active_connections!
+        # no-op
+      end
+
     end # class CassandraAdapter
   end # module ConnectionAdapters
 
