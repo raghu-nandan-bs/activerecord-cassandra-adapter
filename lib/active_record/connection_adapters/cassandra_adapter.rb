@@ -47,7 +47,7 @@ module ActiveRecord
 
     module CustomConnectionHandlerPatch
       def clear_active_connections!(role = ActiveRecord::Base.current_role)
-        puts "self.inspect: #{self.inspect}"
+        puts "self.owner_to_pool_manager.inspect: #{self.owner_to_pool_manager.inspect}"
         puts "clearing active connections..."
         super(role)
       end
