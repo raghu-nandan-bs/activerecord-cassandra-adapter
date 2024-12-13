@@ -53,6 +53,8 @@ module ActiveRecord
       end
     end
 
+    ActiveRecord::ConnectionAdapters::ConnectionHandler.prepend(CustomConnectionHandlerPatch)
+
     module CustomConnectionPoolPatch
 
         def clear_active_connections!(role = ActiveRecord::Base.current_role)
