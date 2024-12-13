@@ -907,6 +907,13 @@ module ActiveRecord
         # no-op
       end
 
+      class ConnectionPool
+        # connection overrides
+        def clear_active_connections!
+          # no-op
+        end
+      end
+
     end # class CassandraAdapter
   end # module ConnectionAdapters
 
