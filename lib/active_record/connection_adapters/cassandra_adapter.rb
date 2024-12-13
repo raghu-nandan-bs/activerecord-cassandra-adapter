@@ -916,6 +916,7 @@ module ActiveRecord
         def active_connection_name
           @connection.keyspace
         end
+      end # class ConnectionPool
 
     end # class CassandraAdapter
   end # module ConnectionAdapters
