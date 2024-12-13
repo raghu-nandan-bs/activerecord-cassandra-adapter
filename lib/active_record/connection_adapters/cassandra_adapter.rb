@@ -46,6 +46,15 @@ module ActiveRecord
 
 
     module CustomConnectionPoolPatch
+
+        def clear_active_connections!(role = ActiveRecord::Base.current_role)
+          if @db_config.configuration_hash[:adapter] == "cassandra"
+            # no-op
+          else
+            super(role)
+          end
+        end
+
         def disconnect(raise_on_acquisition_timeout = true)
           # puts "db_config: #{@db_config.inspect}"
           if @db_config.configuration_hash[:adapter] == "cassandra"
