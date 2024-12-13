@@ -909,6 +909,10 @@ module ActiveRecord
           # no-op
         end
 
+        def establish_connection
+          # no-op
+        end
+
         def active_connection_name
           @connection.keyspace
         end
