@@ -48,6 +48,7 @@ module ActiveRecord
     module CustomConnectionPoolPatch
 
         def clear_active_connections!(role = ActiveRecord::Base.current_role)
+          puts "clearing active connections..."
           if @db_config.configuration_hash[:adapter] == "cassandra"
             # no-op
           else
@@ -909,18 +910,6 @@ module ActiveRecord
         (partition_keys + clustering_keys).map { |row| row['column_name'] }
       rescue Cassandra::Errors::InvalidError => e
         raise ActiveRecord::StatementInvalid.new(e.message)
-      end
-
-      # connection overrides
-      def clear_active_connections!
-        # no-op
-      end
-
-      class ConnectionPool
-        # connection overrides
-        def clear_active_connections!
-          # no-op
-        end
       end
 
     end # class CassandraAdapter
