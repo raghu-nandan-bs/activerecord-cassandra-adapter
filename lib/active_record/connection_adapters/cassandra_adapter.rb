@@ -152,7 +152,7 @@ module ActiveRecord
       end
 
       def initialize(client, logger, config, cluster)
-        super(client, logger, config, cluster)
+        super(client, logger, config)
         @visitor = Arel::Visitors::ToSql.new(self)
         @cluster = cluster
         @config = config
