@@ -904,13 +904,14 @@ module ActiveRecord
 
 
       # ----------------- connection related overrides -----------------
-      def clear_active_connections!
-        # no-op
-      end
+      class ConnectionPool
+        def clear_active_connections!
+          # no-op
+        end
 
-      def active_connection_name
-        @connection.keyspace
-      end
+        def active_connection_name
+          @connection.keyspace
+        end
 
     end # class CassandraAdapter
   end # module ConnectionAdapters
