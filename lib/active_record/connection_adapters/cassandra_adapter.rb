@@ -152,6 +152,7 @@ module ActiveRecord
       end
 
       def initialize(client, logger, config, cluster)
+        puts "\n\n\n\n\n-------------Initializing cassandra adapter!-------------\n\n\n\n\n"
         super(client, logger, config)
         @visitor = Arel::Visitors::ToSql.new(self)
         @cluster = cluster
