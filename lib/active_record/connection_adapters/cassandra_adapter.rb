@@ -12,6 +12,8 @@ module ActiveRecord
   class Base
 
     def self.cassandra_connection(config)
+
+      puts "[cassandra_connection] was called by #{caller}"
       # config.symbolize_keys!
       host = config[:host] || '127.0.1.1'
       port = config[:port] || 9042
