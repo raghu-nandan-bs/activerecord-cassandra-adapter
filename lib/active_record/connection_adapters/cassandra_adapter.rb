@@ -884,6 +884,10 @@ module ActiveRecord
         end
       end
 
+      def connected?
+        true
+      end
+
       # Determine if the column has a NOT NULL constraint
       def determine_null_constraint(table_name, field)
         # Since ScyllaDB doesn't provide null constraints in system_schema.columns,
