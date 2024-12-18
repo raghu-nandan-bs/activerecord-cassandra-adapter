@@ -1,4 +1,7 @@
-require 'active_record_shards/connection_switcher-6-1'
+
+require 'active_record'
+require 'active_record/base'
+
 
 puts "[DEBUG] Starting override definition"
 
@@ -21,7 +24,8 @@ end
 
 if defined?(ActiveRecordShards::ConnectionSwitcher)
   puts "[DEBUG] Found ActiveRecordShards::ConnectionSwitcher, applying override"
-  ActiveRecordShards::ConnectionSwitcher.prepend(CassandraActiveRecordShardOverride::CassandraConnectionSwitcherOverride)
+  # ActiveRecordShards::ConnectionSwitcher.prepend(CassandraActiveRecordShardOverride::CassandraConnectionSwitcherOverride)
+  ActiveRecord::Base.extend(CassandraActiveRecordShardOverride::CassandraConnectionSwitcherOverride)
 else
   puts "[DEBUG] WARNING: ActiveRecordShards::ConnectionSwitcher not found!"
 end
