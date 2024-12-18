@@ -8,4 +8,4 @@ module CassandraActiveRecordShardOverride
 
 end
 
-ActiveRecord::Base.extend(CassandraActiveRecordShardOverride::CassandraConnectionSwitcherOverride)
+ActiveRecordShards::ConnectionSwitcher.prepend(CassandraActiveRecordShardOverride::CassandraConnectionSwitcherOverride)
