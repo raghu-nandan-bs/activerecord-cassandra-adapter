@@ -1,3 +1,5 @@
+require 'active_record_shards/connection_switcher-6-1'
+
 module CassandraActiveRecordShardOverride
   module CassandraConnectionSwitcherOverride
     def connection_specification_name
