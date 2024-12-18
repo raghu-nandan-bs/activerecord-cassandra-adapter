@@ -17,7 +17,7 @@ module CassandraActiveRecordShardOverride
 
     def connection_specification_name
       puts "[Cassandra Driver - Override] connection_specification_name"
-      puts "superclass.connection_specification_name: #{superclass.connection_specification_name}"
+      #puts "superclass.connection_specification_name: #{superclass.connection_specification_name}"
       puts "@connection_specification_name: #{@connection_specification_name}"
 
       super if defined?(super)
