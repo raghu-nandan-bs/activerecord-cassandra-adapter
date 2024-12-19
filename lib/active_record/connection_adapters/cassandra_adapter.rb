@@ -66,6 +66,7 @@ module ActiveRecord
         end
       end
 
+
       def disconnect(raise_on_acquisition_timeout = true)
         # puts "db_config: #{@db_config.inspect}"
         if @db_config.configuration_hash[:adapter] == "cassandra"
@@ -318,8 +319,8 @@ module ActiveRecord
           parsed_sql_cql << " ALLOW FILTERING;"
         end
 
-        # puts "parsed_sql_cql: #{parsed_sql_cql}"
-        # puts "binds: #{binds.inspect}"
+        puts "parsed_sql_cql: #{parsed_sql_cql}"
+        puts "binds: #{binds.inspect}"
 
         if binds.any?
           binds = binds.map { |bind| typecast_bind(bind) }

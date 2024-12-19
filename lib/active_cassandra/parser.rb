@@ -274,7 +274,7 @@ module SqlToCqlParser
       end
       limit
     end
-
+    # TODO: check if it should return empty
     def parse_order_by
       expect(:keyword, 'ORDER')
       expect(:keyword, 'BY')
@@ -438,7 +438,7 @@ module SqlToCqlParser
       table_name = statement[:table_name]
       where_clause = statement[:where]
       limit = statement[:limit]
-      order_by = statement[:order_by]
+      order_by = statement[:order_by] # CQL does not support ORDER BY
 
       cql = "SELECT #{columns.join(', ')} FROM #{table_name}"
 
