@@ -292,6 +292,7 @@ module ActiveRecord
       # end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
+        puts "sql: #{sql}"
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         # puts "++++++++++ processing sql: #{sql}"
         parsed_sql = SqlToCqlParser.to_cql(sql)
