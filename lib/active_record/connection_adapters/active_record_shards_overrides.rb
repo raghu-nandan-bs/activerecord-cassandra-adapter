@@ -22,7 +22,7 @@ module CassandraActiveRecordShardOverride
         puts "returning @connection_specification_name: #{@connection_specification_name}"
         return @connection_specification_name
       # or does it directly inherit from the cassandra application record base class?
-      elsif self.class.superclass && self.class.superclass.connection_specification_name \
+      elsif self.class.superclass && self.class.superclass.respond_to?(:connection_specification_name) \
          && self.class.superclass.connection_specification_name.to_s.start_with?('Cassandra')
         puts "returning self.superclass.connection_specification_name: #{self.class.superclass.connection_specification_name}"
         return self.class.superclass.connection_specification_name
