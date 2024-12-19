@@ -17,11 +17,15 @@ module CassandraActiveRecordShardOverride
 
     def connection_specification_name
       puts "[Cassandra Driver - Override] connection_specification_name"
-      #puts "superclass.connection_specification_name: #{superclass.connection_specification_name}"
-      #puts "@connection_specification_name: #{@connection_specification_name}"
+      # Is this cassandra application record base class?
       if @connection_specification_name && @connection_specification_name.to_s.start_with?('Cassandra')
         puts "returning @connection_specification_name: #{@connection_specification_name}"
         return @connection_specification_name
+      # or does it directly inherit from the cassandra application record base class?
+      elsif self.superclass && self.superclass.connection_specification_name \
+         && self.superclass.connection_specification_name.to_s.start_with?('Cassandra')
+        puts "returning self.superclass.connection_specification_name: #{self.superclass.connection_specification_name}"
+        return self.superclass.@connection_specification_name
       else
         super
       end
