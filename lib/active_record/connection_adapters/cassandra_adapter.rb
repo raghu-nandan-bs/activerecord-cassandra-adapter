@@ -13,7 +13,7 @@ module ActiveRecord
 
     def self.cassandra_connection(config)
 
-      puts "[cassandra_connection] was called by #{caller}"
+      # puts "[cassandra_connection] was called by #{caller}"
       # config.symbolize_keys!
       host = config[:host] || '127.0.1.1'
       port = config[:port] || 9042
@@ -23,9 +23,9 @@ module ActiveRecord
       end
 
 
-      puts "Cassandra class: #{Cassandra.class}"
-      puts "Cassandra ancestors: #{Cassandra.ancestors}"
-      puts "Cassandra source location: #{Cassandra.method(:cluster).source_location}"
+      # puts "Cassandra class: #{Cassandra.class}"
+      # puts "Cassandra ancestors: #{Cassandra.ancestors}"
+      # puts "Cassandra source location: #{Cassandra.method(:cluster).source_location}"
       cluster = Cassandra.cluster(
         hosts:  ["#{host}"]
       )
@@ -58,7 +58,7 @@ module ActiveRecord
     module CustomConnectionPoolPatch
 
       def release_connection(owner_thread = Thread.current)
-        puts "release_connection"
+        # puts "release_connection"
         if @db_config.configuration_hash[:adapter] == "cassandra"
           # no-op
         else
@@ -104,7 +104,7 @@ module ActiveRecord
     class Cassandra::Uuid
       # Convert UUID to string without hyphens
       def [] (index)
-        puts "index: #{index}"
+        # puts "index: #{index}"
         [self.to_s]
       end
     end
@@ -154,7 +154,7 @@ module ActiveRecord
       end
 
       def initialize(client, logger, config, cluster)
-        puts "\n\n\n\n\n-------------Initializing cassandra adapter!-------------\n\n\n\n\n"
+        # puts "\n\n\n\n\n-------------Initializing cassandra adapter!-------------\n\n\n\n\n"
         super(client, logger, config)
         @visitor = Arel::Visitors::ToSql.new(self)
         @cluster = cluster
@@ -318,8 +318,8 @@ module ActiveRecord
           parsed_sql_cql << " ALLOW FILTERING;"
         end
 
-        puts "parsed_sql_cql: #{parsed_sql_cql}"
-        puts "binds: #{binds.inspect}"
+        # puts "parsed_sql_cql: #{parsed_sql_cql}"
+        # puts "binds: #{binds.inspect}"
 
         if binds.any?
           binds = binds.map { |bind| typecast_bind(bind) }
@@ -343,7 +343,7 @@ module ActiveRecord
         columns = []
         rows = []
         cassandra_result.map do |row|
-          puts "########### row: #{row.inspect}"
+          # puts "########### row: #{row.inspect}"
           columns << row.keys.first
           rows << row.values.first
         end
