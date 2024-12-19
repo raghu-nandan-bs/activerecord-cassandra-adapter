@@ -29,12 +29,12 @@ module CassandraActiveRecordShardOverride
   end
 end
 
-if defined?(ActiveRecordShards::ConnectionSwitcher)
-  puts "[DEBUG] Found ActiveRecordShards::ConnectionSwitcher, applying override"
-  # ActiveRecordShards::ConnectionSwitcher.prepend(CassandraActiveRecordShardOverride::CassandraConnectionSwitcherOverride)
-  ActiveRecord::Base.extend(CassandraActiveRecordShardOverride::CassandraConnectionSwitcherOverride)
-else
-  puts "[DEBUG] WARNING: ActiveRecordShards::ConnectionSwitcher not found!"
-end
-
-puts "[DEBUG] Override definition completed"
+#if defined?(ActiveRecordShards::ConnectionSwitcher)
+#  puts "[DEBUG] Found ActiveRecordShards::ConnectionSwitcher, applying override"
+#  # ActiveRecordShards::ConnectionSwitcher.prepend(CassandraActiveRecordShardOverride::CassandraConnectionSwitcherOverride)
+#  ActiveRecord::Base.extend(CassandraActiveRecordShardOverride::CassandraConnectionSwitcherOverride)
+#else
+#  puts "[DEBUG] WARNING: ActiveRecordShards::ConnectionSwitcher not found!"
+#end
+#
+#puts "[DEBUG] Override definition completed"
