@@ -25,7 +25,7 @@ module CassandraActiveRecordShardOverride
       elsif self.superclass && self.superclass.connection_specification_name \
          && self.superclass.connection_specification_name.to_s.start_with?('Cassandra')
         puts "returning self.superclass.connection_specification_name: #{self.superclass.connection_specification_name}"
-        return self.superclass.@connection_specification_name
+        return self.superclass.connection_specification_name
       else
         super
       end
