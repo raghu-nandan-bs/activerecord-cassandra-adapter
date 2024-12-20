@@ -11,12 +11,28 @@ module ActiveRecord
   class Base
     class << self
       def log_message(msg)
-        @@log_file ||= begin
-          file = File.open("/app/log/cassandra_adapter_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log", "a")
-          file.sync = true
-          file
+        formatted_msg = "[#{Time.now}] #{msg}"
+        if defined?(@@log_file) && @@log_file
+          begin
+            @@log_file.puts(formatted_msg)
+            @@log_file.flush
+          rescue => e
+            STDERR.puts "Failed to write to log file: #{e.message}"
+            STDERR.puts formatted_msg
+          end
+        else
+          begin
+            log_path = "/app/log/cassandra_adapter_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log"
+            @@log_file = File.open(log_path, "a")
+            @@log_file.sync = true
+            @@log_file.puts(formatted_msg)
+            @@log_file.flush
+          rescue => e
+            STDERR.puts "Could not create or write to log file #{log_path}: #{e.message}"
+            STDERR.puts "Falling back to STDERR for logging"
+            STDERR.puts formatted_msg
+          end
         end
-        @@log_file.puts("[#{Time.now}] #{msg}")
       end
 
       def close_log_file
