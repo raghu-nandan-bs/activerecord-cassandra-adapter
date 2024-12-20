@@ -12,7 +12,7 @@ module ActiveRecord
     class << self
       def log_message(msg)
         @@log_file ||= begin
-          file = File.open("cassandra_adapter_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log", "a")
+          file = File.open("/app/log/cassandra_adapter_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log", "a")
           file.sync = true
           file
         end
