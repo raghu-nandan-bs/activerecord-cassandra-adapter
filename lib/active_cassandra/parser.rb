@@ -28,6 +28,8 @@ module SqlToCqlParser
         { cql: translate_insert(statement), tokens: statement }
       when 'UPDATE'
         { cql: translate_update(statement), tokens: statement }
+      when 'DELETE'
+        { cql: translate_delete(statement), tokens: statement }
       else
         raise "Unsupported statement type: #{statement[:type]}"
       end
@@ -405,8 +407,23 @@ module SqlToCqlParser
     end
 
     def parse_delete
-      # Implement DELETE parsing if needed
-      raise "DELETE parsing not implemented yet."
+      expect(:keyword, 'DELETE')
+      expect(:keyword, 'FROM')
+      table_name = expect(:identifier).value
+
+      # Parse WHERE clause
+      where_clause = nil
+      if current_token&.type == :keyword && current_token.value.upcase == 'WHERE'
+        where_clause = parse_where
+      end
+
+      expect(:symbol, ';') if current_token && current_token.value == ';'
+
+      {
+        type: 'DELETE',
+        table_name: table_name,
+        where: where_clause
+      }
     end
 
 
@@ -464,6 +481,16 @@ module SqlToCqlParser
 
       cql = "UPDATE #{quote_ident(table_name)}"
       cql += " SET #{updates.join(', ')}"
+      cql += " WHERE #{where_clause.map { |cond| "#{cond[:left]} = #{cond[:right]}" }.join(' AND ')}" if where_clause
+      cql += ";"
+      cql
+    end
+
+    def translate_delete(statement)
+      table_name = statement[:table_name]
+      where_clause = statement[:where]
+
+      cql = "DELETE FROM #{quote_ident(table_name)}"
       cql += " WHERE #{where_clause.map { |cond| "#{cond[:left]} = #{cond[:right]}" }.join(' AND ')}" if where_clause
       cql += ";"
       cql
