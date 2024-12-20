@@ -12,7 +12,7 @@ module ActiveRecord
   class Base
 
     def self.cassandra_connection(config)
-
+      puts "Using Cassandra adapter"
       # puts "[cassandra_connection] was called by #{caller}"
       # config.symbolize_keys!
       host = config[:host] || '127.0.1.1'
@@ -292,7 +292,7 @@ module ActiveRecord
       # end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
-        puts "sql: #{sql}"
+        STDERR.puts "sql: #{sql}"
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         # puts "++++++++++ processing sql: #{sql}"
         parsed_sql = SqlToCqlParser.to_cql(sql)
@@ -320,8 +320,8 @@ module ActiveRecord
           parsed_sql_cql << " ALLOW FILTERING;"
         end
 
-        puts "parsed_sql_cql: #{parsed_sql_cql}"
-        puts "binds: #{binds.inspect}"
+        STDERR.puts "parsed_sql_cql: #{parsed_sql_cql}"
+        STDERR.puts "binds: #{binds.inspect}"
 
         if binds.any?
           binds = binds.map { |bind| typecast_bind(bind) }
