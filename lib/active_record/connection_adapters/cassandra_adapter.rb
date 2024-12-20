@@ -332,7 +332,7 @@ module ActiveRecord
         end
 
 
-
+        puts "result rows: #{rows.inspect}"
         convert_to_active_record_result(rows)
       end
 
