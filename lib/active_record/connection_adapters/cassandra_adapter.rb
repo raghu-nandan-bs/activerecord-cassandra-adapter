@@ -11,6 +11,7 @@ module ActiveRecord
   class Base
     class << self
       def log_message(msg)
+        STDERR.puts "DEBUG: log_message called with: #{msg}"  # This will print regardless of any errors
         formatted_msg = "[#{Time.now}] #{msg}"
         if defined?(@@log_file) && @@log_file
           begin
@@ -42,6 +43,7 @@ module ActiveRecord
     end
 
     def self.cassandra_connection(config)
+      STDERR.puts "DEBUG: cassandra_connection method called"  # Debug print
       log_message("Using Cassandra adapter")
       log_message("[cassandra_connection] was called by #{caller}")
       # config.symbolize_keys!
