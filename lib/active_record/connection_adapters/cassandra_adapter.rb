@@ -1,4 +1,3 @@
-
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/abstract/connection_pool'
 require 'cassandra'
@@ -10,10 +9,25 @@ require 'securerandom'
 
 module ActiveRecord
   class Base
+    class << self
+      def log_message(msg)
+        @@log_file ||= begin
+          file = File.open("cassandra_adapter_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log", "a")
+          file.sync = true
+          file
+        end
+        @@log_file.puts("[#{Time.now}] #{msg}")
+      end
+
+      def close_log_file
+        @@log_file.close if defined?(@@log_file) && @@log_file
+        @@log_file = nil
+      end
+    end
 
     def self.cassandra_connection(config)
-      puts "Using Cassandra adapter"
-      # puts "[cassandra_connection] was called by #{caller}"
+      log_message("Using Cassandra adapter")
+      log_message("[cassandra_connection] was called by #{caller}")
       # config.symbolize_keys!
       host = config[:host] || '127.0.1.1'
       port = config[:port] || 9042
@@ -23,14 +37,14 @@ module ActiveRecord
       end
 
 
-      # puts "Cassandra class: #{Cassandra.class}"
-      # puts "Cassandra ancestors: #{Cassandra.ancestors}"
-      # puts "Cassandra source location: #{Cassandra.method(:cluster).source_location}"
+      log_message("Cassandra class: #{Cassandra.class}")
+      log_message("Cassandra ancestors: #{Cassandra.ancestors}")
+      log_message("Cassandra source location: #{Cassandra.method(:cluster).source_location}")
       cluster = Cassandra.cluster(
         hosts:  ["#{host}"]
       )
       # client.each_host do |host| # automatically discovers all peers
-      #   # puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
+      #   log_message("Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}")
       # end
 
       session = cluster.connect(keyspace)
@@ -39,8 +53,8 @@ module ActiveRecord
   end # class Base
 
   # def establish_connection(config)
-  #   # puts "establishing connection"
-  #   # puts "config: #{config.inspect}"
+  #   log_message("establishing connection")
+  #   log_message("config: #{config.inspect}")
   #   cassandra_connection(config)
   # end
 
@@ -48,7 +62,7 @@ module ActiveRecord
 
     # module CustomConnectionHandlerPatch
     #   def clear_active_connections!(role = ActiveRecord::Base.current_role)
-    #     puts "clearing active connections..."
+    #     log_message("clearing active connections...")
     #     super(role)
     #   end
     # end
@@ -58,7 +72,7 @@ module ActiveRecord
     module CustomConnectionPoolPatch
 
       def release_connection(owner_thread = Thread.current)
-        # puts "release_connection"
+        log_message("release_connection")
         if @db_config.configuration_hash[:adapter] == "cassandra"
           # no-op
         else
@@ -68,15 +82,15 @@ module ActiveRecord
 
 
       def disconnect(raise_on_acquisition_timeout = true)
-        # puts "db_config: #{@db_config.inspect}"
+        log_message("db_config: #{@db_config.inspect}")
         if @db_config.configuration_hash[:adapter] == "cassandra"
-          # puts "#{self.class.name} disconnect for #{connection_klass}"
-          # puts "connection_klass: #{connection_klass.inspect}"
-          # puts "Using adapter: #{connection_klass.connection.class.name}" if connection_klass.connected?
-          # puts "connections: #{@connections.inspect}"
-          # puts ">>>> POOL CONFIG: #{@pool_config.inspect}"
+          log_message("#{self.class.name} disconnect for #{connection_klass}")
+          log_message("connection_klass: #{connection_klass.inspect}")
+          log_message("Using adapter: #{connection_klass.connection.class.name}") if connection_klass.connected?
+          log_message("connections: #{@connections.inspect}")
+          log_message(">>>> POOL CONFIG: #{@pool_config.inspect}")
           @connections.each do |conn|
-            # puts ">>>> DISCONNECTING: #{conn.inspect}"
+            log_message(">>>> DISCONNECTING: #{conn.inspect}")
             conn.close
           end
         else
@@ -105,7 +119,7 @@ module ActiveRecord
     class Cassandra::Uuid
       # Convert UUID to string without hyphens
       def [] (index)
-        # puts "index: #{index}"
+        log_message("index: #{index}")
         [self.to_s]
       end
     end
@@ -155,7 +169,9 @@ module ActiveRecord
       end
 
       def initialize(client, logger, config, cluster)
-        # puts "\n\n\n\n\n-------------Initializing cassandra adapter!-------------\n\n\n\n\n"
+        @log_file = File.open("cassandra_adapter_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log", "a")
+        @log_file.sync = true  # Enable auto-flush
+        log_message("Initializing cassandra adapter at #{Time.now}")
         super(client, logger, config)
         @visitor = Arel::Visitors::ToSql.new(self)
         @cluster = cluster
@@ -165,21 +181,22 @@ module ActiveRecord
 
 
 
-        # puts "cluster: #{@cluster.inspect}"
-        # puts "connected to hosts: #{@cluster.hosts.map { |host| host.ip }}"
+        log_message("cluster: #{@cluster.inspect}")
+        log_message("connected to hosts: #{@cluster.hosts.map { |host| host.ip }}")
       end
 
       def get_table_definition( t)
         ks = get_keyspace(t)
         t = get_table_name(t)
         table = @cluster.keyspace(ks).table(t)
-        # puts "table: #{table.inspect}"
-        # puts "table.partition_key: #{table.partition_key}"
+        log_message("table: #{table.inspect}")
+        log_message("table.partition_key: #{table.partition_key}")
         table
       end
 
       def close
         @connection.close
+        self.class.close_log_file
       end
 
       def get_primary_key(table_definition)
@@ -189,10 +206,10 @@ module ActiveRecord
       def should_inject_primary_key?(table_definition, columns)
         pk = table_definition.partition_key.first.name
         if columns.include?(pk)
-          # puts "should_inject_primary_key? -> false"
+          log_message("should_inject_primary_key? -> false")
           return false
         end
-        # puts "should_inject_primary_key? -> true"
+        log_message("should_inject_primary_key? -> true")
         true
       end
 
@@ -213,7 +230,7 @@ module ActiveRecord
         values.each_with_index do |value, index|
 
           evaluated = value.is_a?(String) && value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
-          # puts "value: #{value}, matched? #{evaluated}"
+          log_message("value: #{value}, matched? #{evaluated}")
           # fix error: Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 16:25:13.403772': marshaling error: Milliseconds length exceeds expected (6))
           if value.is_a?(String) && value =~ /^\'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4,}\'$/
             # Trim milliseconds to 3 digits
@@ -236,8 +253,8 @@ module ActiveRecord
         elsif parsed_sql_tokens[:type] == "UPDATE"
           parsed_sql_tokens[:updates].each_with_index { |set_clause, index| set_clause[:value] = values[index] }
         end
-        # puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
-        # puts "binds: #{binds.inspect}"
+        log_message("parsed_sql_tokens: #{parsed_sql_tokens.inspect}")
+        log_message("binds: #{binds.inspect}")
         return [parsed_sql_tokens, binds]
       end
 
@@ -246,13 +263,13 @@ module ActiveRecord
           return false
         end
         where_keys = parsed_sql_tokens[:where].map { |where_clause| where_clause[:left] }
-        # puts "columns: #{where_keys.inspect}"
-        # puts "table_definition: #{table_definition.partition_key.inspect}"
+        log_message("columns: #{where_keys.inspect}")
+        log_message("table_definition: #{table_definition.partition_key.inspect}")
         partition_keys = table_definition.partition_key.map { |key| key.name }
-        # puts "======"
-        # puts "partition_keys: #{partition_keys.inspect}"
-        # puts "where_keys: #{where_keys.inspect}"
-        # puts "======"
+        log_message("======")
+        log_message("partition_keys: #{partition_keys.inspect}")
+        log_message("where_keys: #{where_keys.inspect}")
+        log_message("======")
         if (partition_keys - where_keys).any?
           true
         else
@@ -281,8 +298,8 @@ module ActiveRecord
       end
 
       def typecast_bind(bind)
-        # puts "typecast_bind"
-        # puts "bind: #{bind.inspect}"
+        log_message("typecast_bind")
+        log_message("bind: #{bind.inspect}")
         # Use the type object to cast the value to the appropriate CQL type
         bind.type.serialize(bind.value_before_type_cast)
       end
@@ -292,13 +309,13 @@ module ActiveRecord
       # end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
-        STDERR.puts "sql: #{sql}"
+        log_message("sql: #{sql}")
         # parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
-        # puts "++++++++++ processing sql: #{sql}"
+        log_message("++++++++++ processing sql: #{sql}")
         parsed_sql = SqlToCqlParser.to_cql(sql)
         parsed_sql_tokens = parsed_sql[:tokens]
         parsed_sql_cql = parsed_sql[:cql]
-        # puts "parsed_sql_cql: #{parsed_sql_cql}"
+        log_message("parsed_sql_cql: #{parsed_sql_cql}")
 
         table_definition = get_table_definition(parsed_sql_tokens[:table_name])
         if parsed_sql_tokens[:type] == "INSERT" && should_inject_primary_key?(table_definition, parsed_sql_tokens[:columns])
@@ -307,9 +324,9 @@ module ActiveRecord
 
         # Cassandra::Errors::InvalidError (marshaling error: unable to parse date '2024-12-06 14:48:14.359762': marshaling error: Milliseconds length exceeds expected (6))
         parsed_sql_tokens, binds = fix_timestamp_format(parsed_sql_tokens, binds)
-        # puts "<<<AFTER TIMESTAMP FIX>>>"
-        # puts "parsed_sql_tokens: #{parsed_sql_tokens.inspect}"
-        # puts "binds: #{binds.inspect}"
+        log_message("<<<AFTER TIMESTAMP FIX>>>")
+        log_message("parsed_sql_tokens: #{parsed_sql_tokens.inspect}")
+        log_message("binds: #{binds.inspect}")
 
 
         parsed_sql_cql = SqlToCqlParser.translate_to_cql(parsed_sql_tokens)[:cql]
@@ -320,13 +337,13 @@ module ActiveRecord
           parsed_sql_cql << " ALLOW FILTERING;"
         end
 
-        STDERR.puts "parsed_sql_cql: #{parsed_sql_cql}"
-        STDERR.puts "binds: #{binds.inspect}"
+        log_message("parsed_sql_cql: #{parsed_sql_cql}")
+        log_message("binds: #{binds.inspect}")
 
         if binds.any?
           binds = binds.map { |bind| typecast_bind(bind) }
-          # puts "binds: #{binds.inspect}"
-          # puts "parsed_sql_cql: #{parsed_sql_cql}"
+          log_message("binds: #{binds.inspect}")
+          log_message("parsed_sql_cql: #{parsed_sql_cql}")
           rows = @connection.execute(parsed_sql_cql, arguments: binds)
         else
           rows = @connection.execute(parsed_sql_cql)
@@ -345,12 +362,12 @@ module ActiveRecord
         columns = []
         rows = []
         cassandra_result.map do |row|
-          # puts "########### row: #{row.inspect}"
+          log_message("########### row: #{row.inspect}")
           columns << row.keys.first
           rows << row.values.first
         end
         result = ActiveRecord::Result.new(columns, rows)
-        # puts "???? result: #{result.inspect}"
+        log_message("???? result: #{result.inspect}")
         result
       end
 
@@ -388,9 +405,9 @@ module ActiveRecord
 
        def select(sql, name = nil, binds=[])
         #log(sql, name, binds)
-        # puts "Running select query: #{sql}"
-        # puts "name: #{name}"
-        # puts "binds: #{binds.inspect}"
+        log_message("Running select query: #{sql}")
+        log_message("name: #{name}")
+        log_message("binds: #{binds.inspect}")
         exec_query(sql, name, binds)
         #  parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         #  cf = parsed_sql[:table].to_sym
@@ -423,7 +440,8 @@ module ActiveRecord
        end
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        log(sql, name)
+        log_message(sql)
+        log_message(name)
 
         parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         table = parsed_sql[:table]
@@ -443,7 +461,8 @@ module ActiveRecord
       end
 
       def update_sql(sql, name = nil)
-        log(sql, name)
+        log_message(sql)
+        log_message(name)
         parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         cf = parsed_sql[:table].to_sym
         cond = parsed_sql[:condition]
@@ -484,7 +503,8 @@ module ActiveRecord
       end
 
       def delete_sql(sql, name = nil)
-        log(sql, name)
+        log_message(sql)
+        log_message(name)
 
         parsed_sql = ActiveCassandra::SQLParser.new(sql).parse
         cf = parsed_sql[:table].to_sym
@@ -728,7 +748,7 @@ module ActiveRecord
         # Initialize column definitions array
         columns_cql = []
 
-        # puts "create table -> table_options: #{table_options}"
+        log_message("create table -> table_options: #{table_options}")
 
         # Handle primary key options
         primary_key = options[:primary_key] || 'id'
