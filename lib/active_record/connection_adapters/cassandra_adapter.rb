@@ -891,6 +891,12 @@ module ActiveRecord
         true
       end
 
+      def exec_delete(sql, name = nil, binds = [])
+        result = self.exec_query(sql, name, binds)
+        # return count of deleted rows
+        result.rows.size
+      end
+
       # Determine if the column has a NOT NULL constraint
       def determine_null_constraint(table_name, field)
         # Since ScyllaDB doesn't provide null constraints in system_schema.columns,
