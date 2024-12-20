@@ -6,6 +6,16 @@ require 'active_cassandra/sqlparser.tab'
 require 'active_cassandra/cassandra_arel_visitor'
 require 'active_cassandra/sql_to_cql_parser'
 require 'securerandom'
+require 'fileutils'
+
+# Debug code to verify file load
+File.open("/app/log/adapter_load_#{Time.now.to_i}.txt", "w") do |f|
+  f.puts "Adapter file loaded at #{Time.now}"
+  f.puts "File path: #{__FILE__}"
+  f.puts "Ruby version: #{RUBY_VERSION}"
+  f.puts "Gem path: #{Gem.path}"
+  f.puts "Load path: #{$LOAD_PATH}"
+end
 
 module ActiveRecord
   class Base
