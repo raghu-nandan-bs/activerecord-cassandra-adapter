@@ -10,36 +10,36 @@ require 'securerandom'
 module ActiveRecord
   class Base
     class << self
-      def log_message(msg)
-        STDERR.puts "DEBUG: log_message called with: #{msg}"  # This will print regardless of any errors
-        formatted_msg = "[#{Time.now}] #{msg}"
-        if defined?(@@log_file) && @@log_file
-          begin
-            @@log_file.puts(formatted_msg)
-            @@log_file.flush
-          rescue => e
-            STDERR.puts "Failed to write to log file: #{e.message}"
-            STDERR.puts formatted_msg
-          end
-        else
-          begin
-            log_path = "/app/log/cassandra_adapter_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log"
-            @@log_file = File.open(log_path, "a")
-            @@log_file.sync = true
-            @@log_file.puts(formatted_msg)
-            @@log_file.flush
-          rescue => e
-            STDERR.puts "Could not create or write to log file #{log_path}: #{e.message}"
-            STDERR.puts "Falling back to STDERR for logging"
-            STDERR.puts formatted_msg
-          end
-        end
-      end
+      # def log_message(msg)
+      #   STDERR.puts "DEBUG: log_message called with: #{msg}"  # This will print regardless of any errors
+      #   formatted_msg = "[#{Time.now}] #{msg}"
+      #   if defined?(@@log_file) && @@log_file
+      #     begin
+      #       @@log_file.puts(formatted_msg)
+      #       @@log_file.flush
+      #     rescue => e
+      #       STDERR.puts "Failed to write to log file: #{e.message}"
+      #       STDERR.puts formatted_msg
+      #     end
+      #   else
+      #     begin
+      #       log_path = "/app/log/cassandra_adapter_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log"
+      #       @@log_file = File.open(log_path, "a")
+      #       @@log_file.sync = true
+      #       @@log_file.puts(formatted_msg)
+      #       @@log_file.flush
+      #     rescue => e
+      #       STDERR.puts "Could not create or write to log file #{log_path}: #{e.message}"
+      #       STDERR.puts "Falling back to STDERR for logging"
+      #       STDERR.puts formatted_msg
+      #     end
+      #   end
+      # end
 
-      def close_log_file
-        @@log_file.close if defined?(@@log_file) && @@log_file
-        @@log_file = nil
-      end
+      # def close_log_file
+      #   @@log_file.close if defined?(@@log_file) && @@log_file
+      #   @@log_file = nil
+      # end
     end
 
     def self.cassandra_connection(config)
@@ -187,9 +187,11 @@ module ActiveRecord
       end
 
       def initialize(client, logger, config, cluster)
-        @log_file = File.open("cassandra_adapter_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log", "a")
-        @log_file.sync = true  # Enable auto-flush
-        log_message("Initializing cassandra adapter at #{Time.now}")
+        File.open("/app/log/cassandra_debug.log", "a") { |f| f.puts "#{Time.now} Initializing adapter" }  # Direct debug write
+        @log_file = File.open("/app/log/cassandra_#{Time.now.strftime('%Y%m%d_%H%M%S')}.log", "a")
+        @log_file.sync = true
+        @log_file.puts("#{Time.now} Adapter initialized")
+        @log_file.flush
         super(client, logger, config)
         @visitor = Arel::Visitors::ToSql.new(self)
         @cluster = cluster
@@ -213,8 +215,8 @@ module ActiveRecord
       end
 
       def close
+        @log_file.close if @log_file
         @connection.close
-        self.class.close_log_file
       end
 
       def get_primary_key(table_definition)
@@ -967,6 +969,19 @@ module ActiveRecord
         raise ActiveRecord::StatementInvalid.new(e.message)
       end
 
+      def log_message(msg)
+        timestamp = Time.now
+        formatted_msg = "[#{timestamp}] #{msg}"
+        begin
+          @log_file.puts(formatted_msg)
+          @log_file.flush
+        rescue => e
+          File.open("/app/log/cassandra_error.log", "a") do |f|
+            f.puts("#{timestamp} Error writing to log: #{e.message}")
+            f.puts(formatted_msg)
+          end
+        end
+      end
     end # class CassandraAdapter
   end # module ConnectionAdapters
 
